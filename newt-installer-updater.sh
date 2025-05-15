@@ -72,9 +72,9 @@ fi
 # --- End of Newt Binary Section ---
 
 # Prompt the user for the Newt client configuration values
-read -p "Enter the Newt Client ID: " NEWT_ID
-read -p "Enter the Newt Client Secret: " NEWT_SECRET
-read -p "Enter the Pangolin Endpoint (e.g., https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT
+read -p "Enter the Newt Client ID: " NEWT_ID < /dev/tty
+read -p "Enter the Newt Client Secret: " NEWT_SECRET < /dev/tty
+read -p "Enter the Pangolin Endpoint (e.g., https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
 
 # Define the content of the service file using a here-document
 # Use the variables populated by user input
