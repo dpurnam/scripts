@@ -1,6 +1,9 @@
 #!/bin/bash
 # Newt Client Installer/Updater Script
 # https://docs.fossorial.io/Newt/install#binary
+# How to USE:
+# curl -sL https://raw.githubusercontent.com/dpurnam/scripts/main/newt-installer-updater.sh | sudo bash
+# sudo rm newt-installer-updater.sh
 
 # Define the target path for the systemd service file
 SERVICE_FILE="/etc/systemd/system/newt.service"
