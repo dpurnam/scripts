@@ -216,7 +216,7 @@ update_tlsa_records() {
         return 1
     fi
 
-    # 4. Add all TLSA records from Stalwart to Cloudflare
+    # 4. Add only '2 0 1' & '3 1 1' TLSA records from Stalwart to Cloudflare
     echo "Adding new TLSA records from Stalwart to Cloudflare..."
     echo "${STALWART_RESPONSE}" | jq -c '.data[] | select(.type == "TLSA")' | while read -r new_record; do
         RECORD_TYPE=$(echo "${new_record}" | jq -r '.type')
