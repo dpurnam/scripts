@@ -79,7 +79,7 @@ read -p "Accept Newt/OLM Clients?: (y/N) " NEWT_CLIENTS < /dev/tty
 read -p "Enable Newt Native Mode: (y/N) " NEWT_NATIVE < /dev/tty
 
 # Initialize Service Unit Parameters
-ExecStartData="/usr/local/bin/newt --id ${NEWT_ID} --secret ${NEWT_SECRET} --endpoint ${PANGOLIN_ENDPOINT}"
+ExecStartData="/usr/local/bin/newt --id ${NEWT_ID} --secret ${NEWT_SECRET} --endpoint ${PANGOLIN_ENDPOINT} --docker-socket /var/run/docker.sock"
 User=newt
 Group=newt
 NoNewPrivileges=yes
