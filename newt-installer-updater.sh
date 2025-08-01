@@ -126,7 +126,7 @@ fi
 ExecStartData="/usr/local/bin/newt --id ${NEWT_ID} --secret ${NEWT_SECRET} --endpoint ${PANGOLIN_ENDPOINT} --docker-socket /var/run/docker.sock"
 User=newt
 Group=newt
-NoNewPrivileges=yes
+NoNewPrivileges=true
 
 # Conditionally add --accept-clients
 if [[ "${NEWT_CLIENTS}" =~ ^[Yy]$ ]]; then
@@ -138,7 +138,7 @@ if [[ "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
     ExecStartData="${ExecStartData} --native"
     User=root
     Group=root
-    NoNewPrivileges=no
+    NoNewPrivileges=false
 fi
 
 # Define the content of the service file using a here-document
@@ -151,14 +151,14 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart="${ExecStartData}"
+ExecStart=${ExecStartData}
 Restart=always
 RestartSec=10
 
 # Security hardening options
-User="$User"
-Group="$Group"
-NoNewPrivileges="$NoNewPrivileges"
+User=$User
+Group=$Group
+NoNewPrivileges=$NoNewPrivileges
 ProtectSystem=strict
 ProtectHome=yes
 PrivateTmp=yes
