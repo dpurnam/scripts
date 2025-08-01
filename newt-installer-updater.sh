@@ -75,25 +75,46 @@ fi
 read -p "Enter the Newt Client ID: " NEWT_ID < /dev/tty
 read -p "Enter the Newt Client Secret: " NEWT_SECRET < /dev/tty
 read -p "Enter the Pangolin Endpoint (e.g., https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
+read -p "Accept Newt/OLM Clients?: (y/N) " NEWT_CLIENTS < /dev/tty
+read -p "Enable Newt Native Mode: (y/N) " NEWT_NATIVE < /dev/tty
+
+# Initialize Service Unit Parameters
+ExecStartData="/usr/local/bin/newt --id ${NEWT_ID} --secret ${NEWT_SECRET} --endpoint ${PANGOLIN_ENDPOINT}"
+User=newt
+Group=newt
+NoNewPrivileges=yes
+
+# Conditionally add --accept-clients
+if [[ "${NEWT_CLIENTS}" =~ ^[Yy]$ ]]; then
+    ExecStartData="${ExecStartData} --accept-clients"
+fi
+
+# Conditionally add --native
+if [[ "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
+    ExecStartData="${ExecStartData} --native"
+    User=root
+    Group=root
+    NoNewPrivileges=no
+fi
 
 # Define the content of the service file using a here-document
 # Use the variables populated by user input
 read -r -d '' SERVICE_CONTENT << EOF
 [Unit]
-Description=Newt Client Service
+Description=Newt Service
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/newt --id ${NEWT_ID} --secret ${NEWT_SECRET} --endpoint ${PANGOLIN_ENDPOINT}
+ExecStart="${ExecStartData}"
 Restart=always
 RestartSec=10
 
 # Security hardening options
-User=newt
-Group=newt
-NoNewPrivileges=yes
+User="$User"
+Group="$Group"
+NoNewPrivileges="$NoNewPrivileges"
 ProtectSystem=strict
 ProtectHome=yes
 PrivateTmp=yes
@@ -105,11 +126,14 @@ WantedBy=multi-user.target
 EOF
 
 # Create the directory for the newt user and group if they don't exist
-# This assumes 'newt' user/group should own the process and /var/lib/newt
 getent group newt >/dev/null || groupadd newt
 getent passwd newt >/dev/null || useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
 mkdir -p "${NEWT_LIB_PATH}"
-chown newt:newt "${NEWT_LIB_PATH}"
+if [[ "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
+  chown root:root "${NEWT_LIB_PATH}"
+else
+  chown newt:newt "${NEWT_LIB_PATH}"
+fi
 
 # Write the content to the service file
 echo "$SERVICE_CONTENT" | tee "$SERVICE_FILE" > /dev/null
