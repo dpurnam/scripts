@@ -16,6 +16,57 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
+# Initialize variables to 'N' by default, assuming they are not present
+NEWT_CLIENTS="N"
+NEWT_NATIVE="N"
+
+# --- Capture Existing Info ---
+if [[ -f "${SERVICE_FILE}" ]]; then
+  # Get the ExecStart line
+  exec_start_line=$(grep '^ExecStart=' "${SERVICE_FILE}")
+
+  # Extract ID
+  NEWT_ID=$(echo "${exec_start_line}" | awk -F'--id ' '{print $2}' | awk '{print $1}')
+  # Extract Secret
+  NEWT_SECRET=$(echo "${exec_start_line}" | awk -F'--secret ' '{print $2}' | awk '{print $1}')
+  # Extract Endpoint
+  PANGOLIN_ENDPOINT=$(echo "${exec_start_line}" | awk -F'--endpoint ' '{print $2}' | awk '{print $1}')
+
+  # Check for --accept-clients flag
+  if echo "${exec_start_line}" | grep -q -- --accept-clients; then
+    NEWT_CLIENTS="y"
+  fi
+
+  # Check for --native flag
+  if echo "${exec_start_line}" | grep -q -- --native; then
+    NEWT_NATIVE="y"
+  fi
+
+  echo "Captured existing newt info from ${SERVICE_FILE}:"
+  echo "  ID: ${NEWT_ID}"
+  echo "  Secret: ${NEWT_SECRET}"
+  echo "  Endpoint: ${PANGOLIN_ENDPOINT}"
+  echo "  Accept Newt/OLM Clients: ${NEWT_CLIENTS}"
+  echo "  Enable Newt Native Mode: ${NEWT_NATIVE}"
+  echo ""
+
+  read -p "Do you want to proceed with these values? (y/N) " CONFIRM_PROCEED < /dev/tty
+  if [[ ! "${CONFIRM_PROCEED}" =~ ^[Yy]$ ]]; then
+    echo "Operation cancelled by user."
+    exit 0 # Exit cleanly if the user doesn't confirm
+  fi
+  echo ""
+# --- or Capture User Input ---
+else
+  # Prompt the user for the Newt client configuration values
+  echo ""
+  read -p "Enter the Newt Client ID: " NEWT_ID < /dev/tty
+  read -p "Enter the Newt Client Secret: " NEWT_SECRET < /dev/tty
+  read -p "Enter the Pangolin Endpoint (e.g., https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
+  read -p "Accept Newt/OLM Clients?: (y/N) " NEWT_CLIENTS < /dev/tty
+  read -p "Enable Newt Native Mode: (y/N) " NEWT_NATIVE < /dev/tty
+fi
+
 # --- Newt Binary Download and Update Section ---
 echo "Checking for the latest Newt binary..."
 
@@ -70,13 +121,6 @@ else
 fi
 
 # --- End of Newt Binary Section ---
-
-# Prompt the user for the Newt client configuration values
-read -p "Enter the Newt Client ID: " NEWT_ID < /dev/tty
-read -p "Enter the Newt Client Secret: " NEWT_SECRET < /dev/tty
-read -p "Enter the Pangolin Endpoint (e.g., https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
-read -p "Accept Newt/OLM Clients?: (y/N) " NEWT_CLIENTS < /dev/tty
-read -p "Enable Newt Native Mode: (y/N) " NEWT_NATIVE < /dev/tty
 
 # Initialize Service Unit Parameters
 ExecStartData="/usr/local/bin/newt --id ${NEWT_ID} --secret ${NEWT_SECRET} --endpoint ${PANGOLIN_ENDPOINT} --docker-socket /var/run/docker.sock"
