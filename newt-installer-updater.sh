@@ -77,8 +77,8 @@ if [[ -f "${SERVICE_FILE}" ]]; then
       read -p "Enter the Pangolin Endpoint (ex. https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
       read -p "Accept Newt/OLM Clients Access? (y/N): " NEWT_CLIENTS < /dev/tty
       read -p "Enable Newt Native Mode (y/N): " NEWT_NATIVE < /dev/tty
-      read -p "Enable Docker Socket Access (y/N): " DOCKER_SOCKET < /dev/tty
-      if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
+      read -p "Enable Docker Socket Access (requires Native Mode) (y/N): " DOCKER_SOCKET < /dev/tty
+      if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ && "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
         read -p "Enter Docker Socket Path (ex. /var/run/docker.sock): " DOCKER_SOCKET_PATH < /dev/tty
       fi
       echo ""
@@ -93,8 +93,8 @@ else
   read -p "Enter the Pangolin Endpoint (ex. https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
   read -p "Accept Newt/OLM Clients Access? (y/N): " NEWT_CLIENTS < /dev/tty
   read -p "Enable Newt Native Mode (y/N): " NEWT_NATIVE < /dev/tty
-  read -p "Enable Docker Socket Access (y/N): " DOCKER_SOCKET < /dev/tty
-  if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
+  read -p "Enable Docker Socket Access (requires Native Mode) (y/N): " DOCKER_SOCKET < /dev/tty
+  if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ && "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
     read -p "Enter Docker Socket Path (ex. /var/run/docker.socket): " DOCKER_SOCKET_PATH < /dev/tty
   fi
   echo ""
@@ -168,11 +168,11 @@ PrivateTmpValue=true
 PrivateDevicesValue=true
 
 # Conditionally add --accept-clients, --native or --docker-socket flags
-if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
-    ExecStartValue="${ExecStartValue} --docker-socket ${DOCKER_SOCKET_PATH}"
-fi
 if [[ "${NEWT_CLIENTS}" =~ ^[Yy]$ ]]; then
     ExecStartValue="${ExecStartValue} --accept-clients"
+fi
+if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ && "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
+    ExecStartValue="${ExecStartValue} --docker-socket ${DOCKER_SOCKET_PATH}"
 fi
 if [[ "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
     ExecStartValue="${ExecStartValue} --native"
