@@ -11,7 +11,8 @@ YELLOW='\e[93m'
 NC='\e[0m' # No Color
 
 # Define the target path for the systemd service file
-SERVICE_FILE="/etc/systemd/system/newt.service"
+SERVICE_NAME="newt.service"
+SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME"
 NEWT_BIN_PATH="/usr/local/bin/newt"
 NEWT_LIB_PATH="/var/lib/newt"
 DOCKER_SOCKET_PATH=""
@@ -222,10 +223,11 @@ fi
 
 # Write the content to the service file
 echo "$SERVICE_CONTENT" | tee "$SERVICE_FILE" > /dev/null
-
-echo -e "Systemd service file created at ${GREEN}$SERVICE_FILE${NC} with provided NEWT VPN Client details."
+echo -e "Systemd service file (re)created at ${GREEN}$SERVICE_FILE${NC} with provided NEWT VPN Client details."
+echo ""
 echo -e "${YELLOW}Now, reloading systemd,  enabling/starting the service:${NC}"
+systemctl stop $SERVICE_NAME
 systemctl daemon-reload
-systemctl enable newt.service
-systemctl start newt.service
-systemctl status newt.service | cat
+systemctl enable $SERVICE_NAME
+systemctl start $SERVICE_NAME
+systemctl status $SERVICE_NAME | cat
