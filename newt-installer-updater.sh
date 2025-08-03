@@ -61,7 +61,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   echo ""
 
   #read -p "Do you want to proceed with these values? (y/N) " CONFIRM_PROCEED < /dev/tty
-  read -p "Do you want to proceed with these values? ${YELLOW}(y/N)${NC} " CONFIRM_PROCEED
+  read -p "Do you want to proceed with these values? ${YELLOW}(y/N)${NC} " CONFIRM_PROCEED < /dev/tty
   #echo -e "Do you want to proceed with these values? ${YELLOW}(y/N)${NC}"
   #read CONFIRM_PROCEED < /dev/tty
   if [[ ! "${CONFIRM_PROCEED}" =~ ^[Yy]$ ]]; then
