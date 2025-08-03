@@ -157,15 +157,8 @@ fi
 
 # --- End of Newt Binary Section ---
 
-# Initialize Service Unit Parameters for non-root (newt) user by default
+# Initialize ExecStartValue
 ExecStartValue="/usr/local/bin/newt --id ${NEWT_ID} --secret ${NEWT_SECRET} --endpoint ${PANGOLIN_ENDPOINT}"
-UserValue=newt
-GroupValue=newt
-NoNewPrivilegesValue=true
-ProtectSystemValue=strict
-ProtectHomeValue=true
-PrivateTmpValue=true
-PrivateDevicesValue=true
 
 # Conditionally add --accept-clients, --native or --docker-socket flags
 if [[ "${NEWT_CLIENTS}" =~ ^[Yy]$ ]]; then
@@ -175,16 +168,27 @@ if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ && "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
     ExecStartValue="${ExecStartValue} --docker-socket ${DOCKER_SOCKET_PATH}"
 fi
 if [[ "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
-    ExecStartValue="${ExecStartValue} --native"
-    UserValue=root
-    GroupValue=root
-    PrivateTmpValue=false
-    PrivateDevicesValue=false
-fi
+    read -r -d '' SERVICE_CONTENT << EOF1
+[Unit]
+Description=Newt VPN Client Service (Native Mode)
+After=network-online.target
+Wants=network-online.target
 
-# Define the content of the service file using a here-document
-# Use the variables populated by user input
-read -r -d '' SERVICE_CONTENT << EOF
+[Service]
+Type=simple
+ExecStart=${ExecStartValue} --native
+Restart=always
+RestartSec=10
+
+# Security hardening options
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
+EOF1
+else
+    read -r -d '' SERVICE_CONTENT << EOF2
 [Unit]
 Description=Newt VPN Client Service
 After=network-online.target
@@ -197,27 +201,23 @@ Restart=always
 RestartSec=10
 
 # Security hardening options
-User=$UserValue
-Group=$GroupValue
-NoNewPrivileges=$NoNewPrivilegesValue
-ProtectSystem=$ProtectSystemValue
-ProtectHome=$ProtectHomeValue
-PrivateTmp=$PrivateTmpValue
-PrivateDevices=$PrivateDevicesValue
+User=newt
+Group=newt
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
 ReadWritePaths=${NEWT_LIB_PATH}
 
 [Install]
 WantedBy=multi-user.target
-EOF
-
-# Create the directory for the newt user and group if they don't exist
-getent group newt >/dev/null || groupadd newt
-getent passwd newt >/dev/null || useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
-mkdir -p "${NEWT_LIB_PATH}"
-if [[ "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
-  chown root:root "${NEWT_LIB_PATH}"
-else
-  chown newt:newt "${NEWT_LIB_PATH}"
+EOF2
+    # Create the directory for the newt user and group if they don't exist
+    getent group newt >/dev/null || groupadd newt
+    getent passwd newt >/dev/null || useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
+    mkdir -p "${NEWT_LIB_PATH}"
+    chown newt:newt "${NEWT_LIB_PATH}"
 fi
 
 # Write the content to the service file
