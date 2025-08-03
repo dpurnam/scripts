@@ -15,7 +15,7 @@ NC='\e[0m' # No Color
 SERVICE_FILE="/etc/systemd/system/newt.service"
 NEWT_BIN_PATH="/usr/local/bin/newt"
 NEWT_LIB_PATH="/var/lib/newt"
-DOCKER_SOCKET_PATH="/var/run/docker.sock"
+DOCKER_SOCKET_PATH=""
 
 # Check if the script is run with root privileges
 if [ "$EUID" -ne 0 ]; then
