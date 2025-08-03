@@ -214,4 +214,4 @@ echo -e "${YELLOW}Now, reloading systemd,  enabling/starting the service:${NC}"
 systemctl daemon-reload
 systemctl enable newt.service
 systemctl start newt.service
-systemctl status newt.service
+systemctl status newt.service | cat
