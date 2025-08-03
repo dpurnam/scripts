@@ -67,8 +67,23 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   #echo -e "${YELLOW}Do you want to proceed with these values? (y/N)${NC} "
   #read CONFIRM_PROCEED < /dev/tty
   if [[ ! "${CONFIRM_PROCEED}" =~ ^[Yy]$ ]]; then
-    echo -e "${RED}Operation cancelled by user.${NC}"
-    exit 0 # Exit cleanly if the user doesn't confirm
+    read -p "Do you want to provide New values? (y/N) " CONFIRM_PROVIDE < /dev/tty
+    if [[ ! "${CONFIRM_PROVIDE}" =~ ^[Yy]$ ]]; then
+      echo -e "${RED}Operation cancelled by user.${NC}"
+      exit 0 # Exit cleanly if the user doesn't confirm
+    else
+      echo ""
+      read -p "Enter the Newt Client ID: " NEWT_ID < /dev/tty
+      read -p "Enter the Newt Client Secret: " NEWT_SECRET < /dev/tty
+      read -p "Enter the Pangolin Endpoint (ex. https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
+      read -p "Accept Newt/OLM Clients Access?: (y/N) " NEWT_CLIENTS < /dev/tty
+      read -p "Enable Newt Native Mode: (y/N) " NEWT_NATIVE < /dev/tty
+      read -p "Enable Docker Socket Access: (y/N) " DOCKER_SOCKET < /dev/tty
+      if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
+        read -p "Enter Docker Socket Path: (ex. /var/run/docker.socket) " DOCKER_SOCKET_PATH < /dev/tty
+      fi
+      echo ""
+    fi
   fi
   echo ""
 # --- or Capture User Input ---
@@ -81,7 +96,7 @@ else
   read -p "Enable Newt Native Mode: (y/N) " NEWT_NATIVE < /dev/tty
   read -p "Enable Docker Socket Access: (y/N) " DOCKER_SOCKET < /dev/tty
   if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
-    read -p "Provide Docker Socket Path: (ex. /var/run/docker.socket) " DOCKER_SOCKET_PATH < /dev/tty
+    read -p "Enter Docker Socket Path: (ex. /var/run/docker.socket) " DOCKER_SOCKET_PATH < /dev/tty
   fi
   echo ""
 fi
