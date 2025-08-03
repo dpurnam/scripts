@@ -49,6 +49,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   fi
   if echo "${exec_start_line}" | grep -q -- --docker-socket; then
     DOCKER_SOCKET="y"
+    DOCKER_SOCKET_PATH="$(echo "${exec_start_line}" | sed -n 's/.*--docker-socket \(\S\+\).*/\1/p')"
   fi
 
   echo -e "Captured existing newt info from ${GREEN}${SERVICE_FILE}${NC}:"
@@ -58,6 +59,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   echo -e "  Accept Newt/OLM Clients Access: ${YELLOW}${NEWT_CLIENTS}${NC}"
   echo -e "  Enable Newt Native Mode: ${YELLOW}${NEWT_NATIVE}${NC}"
   echo -e "  Enable Docker Socket Access: ${YELLOW}${DOCKER_SOCKET}${NC}"
+  echo -e "  Docker Socket Path: ${YELLOW}${DOCKER_SOCKET_PATH}${NC}"
   echo ""
 
   read -p "Do you want to proceed with these values? (y/N) " CONFIRM_PROCEED < /dev/tty
