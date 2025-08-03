@@ -9,6 +9,7 @@
 SERVICE_FILE="/etc/systemd/system/newt.service"
 NEWT_BIN_PATH="/usr/local/bin/newt"
 NEWT_LIB_PATH="/var/lib/newt"
+DOCKER_SOCKET_PATH="/var/run/docker.sock"
 
 # Check if the script is run with root privileges
 if [ "$EUID" -ne 0 ]; then
@@ -19,6 +20,7 @@ fi
 # Initialize variables to 'N' by default, assuming they are not present
 NEWT_CLIENTS="N"
 NEWT_NATIVE="N"
+DOCKER_SOCKET="N"
 
 # --- Capture Existing Info ---
 if [[ -f "${SERVICE_FILE}" ]]; then
@@ -32,22 +34,24 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   # Extract Endpoint
   PANGOLIN_ENDPOINT=$(echo "${exec_start_line}" | awk -F'--endpoint ' '{print $2}' | awk '{print $1}')
 
-  # Check for --accept-clients flag
+  # Check for --accept-clients, --native or --docker-socket flags
   if echo "${exec_start_line}" | grep -q -- --accept-clients; then
     NEWT_CLIENTS="y"
   fi
-
-  # Check for --native flag
   if echo "${exec_start_line}" | grep -q -- --native; then
     NEWT_NATIVE="y"
+  fi
+  if echo "${exec_start_line}" | grep -q -- --docker-socket; then
+    DOCKER_SOCET="y"
   fi
 
   echo "Captured existing newt info from ${SERVICE_FILE}:"
   echo "  ID: ${NEWT_ID}"
   echo "  Secret: ${NEWT_SECRET}"
   echo "  Endpoint: ${PANGOLIN_ENDPOINT}"
-  echo "  Accept Newt/OLM Clients: ${NEWT_CLIENTS}"
+  echo "  Accept Newt/OLM Clients Access: ${NEWT_CLIENTS}"
   echo "  Enable Newt Native Mode: ${NEWT_NATIVE}"
+  echo "  Enable Docker Socket Access: ${DOCKER_SOCKET}"
   echo ""
 
   read -p "Do you want to proceed with these values? (y/N) " CONFIRM_PROCEED < /dev/tty
@@ -58,16 +62,21 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   echo ""
 # --- or Capture User Input ---
 else
-  # Prompt the user for the Newt client configuration values
   echo ""
   read -p "Enter the Newt Client ID: " NEWT_ID < /dev/tty
   read -p "Enter the Newt Client Secret: " NEWT_SECRET < /dev/tty
-  read -p "Enter the Pangolin Endpoint (e.g., https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
-  read -p "Accept Newt/OLM Clients?: (y/N) " NEWT_CLIENTS < /dev/tty
+  read -p "Enter the Pangolin Endpoint (ex. https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
+  read -p "Accept Newt/OLM Clients Access?: (y/N) " NEWT_CLIENTS < /dev/tty
   read -p "Enable Newt Native Mode: (y/N) " NEWT_NATIVE < /dev/tty
+  read -p "Enable Docker Socket Access: (y/N) " DOCKER_SOCKET < /dev/tty
+  if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
+    read -p "Provide Docker Socket Path: (ex. /var/run/docker.socket) " DOCKER_SOCKET_PATH < /dev/tty
+  fi
+  echo ""
 fi
 
 # --- Newt Binary Download and Update Section ---
+echo ""
 echo "Checking for the latest Newt binary..."
 
 # Detect system architecture
@@ -86,7 +95,7 @@ case "$ARCH" in
     exit 1
     ;;
 esac
-
+echo ""
 echo "Detected architecture: $ARCH ($NEWT_ARCH)"
 
 # Get the latest release tag from GitHub API
@@ -117,52 +126,59 @@ else
     chmod +x /tmp/newt_temp
     mv /tmp/newt_temp "$NEWT_BIN_PATH"
     echo "Newt binary updated successfully."
+    echo ""
   # fi
 fi
 
 # --- End of Newt Binary Section ---
 
-# Initialize Service Unit Parameters
-ExecStartData="/usr/local/bin/newt --id ${NEWT_ID} --secret ${NEWT_SECRET} --endpoint ${PANGOLIN_ENDPOINT} --docker-socket /var/run/docker.sock"
-User=newt
-Group=newt
-NoNewPrivileges=true
+# Initialize Service Unit Parameters for non-root (newt) user by default
+ExecStartValue="/usr/local/bin/newt --id ${NEWT_ID} --secret ${NEWT_SECRET} --endpoint ${PANGOLIN_ENDPOINT}"
+UserValue=newt
+GroupValue=newt
+NoNewPrivilegesValue=true
+ProtectSystemValue=strict
+ProtectHomeValue=true
+PrivateTmpValue=true
+PrivateDevicesValue=true
 
-# Conditionally add --accept-clients
-if [[ "${NEWT_CLIENTS}" =~ ^[Yy]$ ]]; then
-    ExecStartData="${ExecStartData} --accept-clients"
+# Conditionally add --accept-clients, --native or --docker-socket flags
+if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
+    ExecStartValue="${ExecStartData} --docker-socket ${DOCKER_SOCKET_PATH}"
 fi
-
-# Conditionally add --native
+if [[ "${NEWT_CLIENTS}" =~ ^[Yy]$ ]]; then
+    ExecStartValue="${ExecStartData} --accept-clients"
+fi
 if [[ "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
-    ExecStartData="${ExecStartData} --native"
-    User=root
-    Group=root
-    NoNewPrivileges=false
+    ExecStartValue="${ExecStartValue} --native"
+    UserValue=root
+    GroupValue=root
+    PrivateTmpValue=false
+    PrivateDevicesValue=false
 fi
 
 # Define the content of the service file using a here-document
 # Use the variables populated by user input
 read -r -d '' SERVICE_CONTENT << EOF
 [Unit]
-Description=Newt Service
+Description=Newt VPN Client Service
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=${ExecStartData}
+ExecStart=${ExecStartValue}
 Restart=always
 RestartSec=10
 
 # Security hardening options
-User=$User
-Group=$Group
-NoNewPrivileges=$NoNewPrivileges
-ProtectSystem=strict
-ProtectHome=yes
-PrivateTmp=yes
-PrivateDevices=yes
+User=$UserValue
+Group=$GroupValue
+NoNewPrivileges=$NoNewPrivilegesValue
+ProtectSystem=$ProtectSystemValue
+ProtectHome=$ProtectHomeValue
+PrivateTmp=$PrivateTmpValue
+PrivateDevices=$PrivateDevicesValue
 ReadWritePaths=${NEWT_LIB_PATH}
 
 [Install]
