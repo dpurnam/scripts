@@ -8,7 +8,7 @@
 # ANSI color codes
 RED='\e[31m'
 GREEN='\e[32m'
-YELLOW='\e[33m'
+YELLOW='\e[93m'
 NC='\e[0m' # No Color
 
 # Define the target path for the systemd service file
