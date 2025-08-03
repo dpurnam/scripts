@@ -170,10 +170,10 @@ PrivateDevicesValue=true
 
 # Conditionally add --accept-clients, --native or --docker-socket flags
 if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
-    ExecStartValue="${ExecStartData} --docker-socket ${DOCKER_SOCKET_PATH}"
+    ExecStartValue="${ExecStartValue} --docker-socket ${DOCKER_SOCKET_PATH}"
 fi
 if [[ "${NEWT_CLIENTS}" =~ ^[Yy]$ ]]; then
-    ExecStartValue="${ExecStartData} --accept-clients"
+    ExecStartValue="${ExecStartValue} --accept-clients"
 fi
 if [[ "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
     ExecStartValue="${ExecStartValue} --native"
