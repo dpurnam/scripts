@@ -52,17 +52,18 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   fi
 
   echo -e "Captured existing newt info from ${GREEN}${SERVICE_FILE}${NC}:"
-  echo "  ID: ${YELLOW}${NEWT_ID}${NC}"
-  echo "  Secret: ${YELLOW}${NEWT_SECRET}${NC}"
-  echo "  Endpoint: ${YELLOW}${PANGOLIN_ENDPOINT}${NC}"
-  echo "  Accept Newt/OLM Clients Access: ${YELLOW}${NEWT_CLIENTS}${NC}"
-  echo "  Enable Newt Native Mode: ${YELLOW}${NEWT_NATIVE}${NC}"
-  echo "  Enable Docker Socket Access: ${YELLOW}${DOCKER_SOCKET}${NC}"
+  echo -e "  ID: ${YELLOW}${NEWT_ID}${NC}"
+  echo -e "  Secret: ${YELLOW}${NEWT_SECRET}${NC}"
+  echo -e "  Endpoint: ${YELLOW}${PANGOLIN_ENDPOINT}${NC}"
+  echo -e "  Accept Newt/OLM Clients Access: ${YELLOW}${NEWT_CLIENTS}${NC}"
+  echo -e "  Enable Newt Native Mode: ${YELLOW}${NEWT_NATIVE}${NC}"
+  echo -e "  Enable Docker Socket Access: ${YELLOW}${DOCKER_SOCKET}${NC}"
   echo ""
 
   #read -p "Do you want to proceed with these values? (y/N) " CONFIRM_PROCEED < /dev/tty
-  echo -e "Do you want to proceed with these values? ${YELLOW}(y/N)${NC}"
-  read CONFIRM_PROCEED < /dev/tty
+  read -p "Do you want to proceed with these values? ${YELLOW}(y/N)${NC} " CONFIRM_PROCEED
+  #echo -e "Do you want to proceed with these values? ${YELLOW}(y/N)${NC}"
+  #read CONFIRM_PROCEED < /dev/tty
   if [[ ! "${CONFIRM_PROCEED}" =~ ^[Yy]$ ]]; then
     echo -e "${RED}Operation cancelled by user.${NC}"
     exit 0 # Exit cleanly if the user doesn't confirm
