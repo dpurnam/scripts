@@ -76,11 +76,11 @@ if [[ -f "${SERVICE_FILE}" ]]; then
       read -p "Enter the Newt Client ID: " NEWT_ID < /dev/tty
       read -p "Enter the Newt Client Secret: " NEWT_SECRET < /dev/tty
       read -p "Enter the Pangolin Endpoint (ex. https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
-      read -p "Accept Newt/OLM Clients Access?: (y/N) " NEWT_CLIENTS < /dev/tty
-      read -p "Enable Newt Native Mode: (y/N) " NEWT_NATIVE < /dev/tty
-      read -p "Enable Docker Socket Access: (y/N) " DOCKER_SOCKET < /dev/tty
+      read -p "Accept Newt/OLM Clients Access? (y/N): " NEWT_CLIENTS < /dev/tty
+      read -p "Enable Newt Native Mode (y/N): " NEWT_NATIVE < /dev/tty
+      read -p "Enable Docker Socket Access (y/N): " DOCKER_SOCKET < /dev/tty
       if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
-        read -p "Enter Docker Socket Path: (ex. /var/run/docker.socket) " DOCKER_SOCKET_PATH < /dev/tty
+        read -p "Enter Docker Socket Path (ex. /var/run/docker.socket): " DOCKER_SOCKET_PATH < /dev/tty
       fi
       echo ""
     fi
@@ -92,11 +92,11 @@ else
   read -p "Enter the Newt Client ID: " NEWT_ID < /dev/tty
   read -p "Enter the Newt Client Secret: " NEWT_SECRET < /dev/tty
   read -p "Enter the Pangolin Endpoint (ex. https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
-  read -p "Accept Newt/OLM Clients Access?: (y/N) " NEWT_CLIENTS < /dev/tty
-  read -p "Enable Newt Native Mode: (y/N) " NEWT_NATIVE < /dev/tty
-  read -p "Enable Docker Socket Access: (y/N) " DOCKER_SOCKET < /dev/tty
+  read -p "Accept Newt/OLM Clients Access? (y/N): " NEWT_CLIENTS < /dev/tty
+  read -p "Enable Newt Native Mode (y/N): " NEWT_NATIVE < /dev/tty
+  read -p "Enable Docker Socket Access (y/N): " DOCKER_SOCKET < /dev/tty
   if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
-    read -p "Enter Docker Socket Path: (ex. /var/run/docker.socket) " DOCKER_SOCKET_PATH < /dev/tty
+    read -p "Enter Docker Socket Path (ex. /var/run/docker.socket): " DOCKER_SOCKET_PATH < /dev/tty
   fi
   echo ""
 fi
@@ -141,17 +141,17 @@ else
   # if [ -f "$NEWT_BIN_PATH" ] && "$NEWT_BIN_PATH" --version 2>/dev/null | grep -q "$LATEST_RELEASE_URL"; then
   #   echo "Newt binary is already the latest version ($LATEST_RELEASE_URL). Skipping download."
   # else
-    echo "Attempting to download Newt binary for ${ARCH} from $DOWNLOAD_URL"
+    echo -e "Attempting to download ${YELLOW}Newt binary for ${ARCH}${NC} from $DOWNLOAD_URL"
     if ! wget -O /tmp/newt_temp "$DOWNLOAD_URL"; then
       echo -e "${RED}Error: Failed to download Newt binary from $DOWNLOAD_URL.${NC}"
       echo -e "${YELLOW}Please check the URL and your network connection.${NC}"
       exit 1
     fi
 
-    echo -e "Installing Newt binary to ${GREEN}$NEWT_BIN_PATH${NC}"
+    echo -e "Installing ${GREEN}Newt binary to $NEWT_BIN_PATH${NC}"
     chmod +x /tmp/newt_temp
     mv /tmp/newt_temp "$NEWT_BIN_PATH"
-    echo "Newt binary updated successfully."
+    echo -e "${GREEN}Newt binary updated successfully.${NC}"
     echo ""
   # fi
 fi
@@ -224,7 +224,7 @@ fi
 # Write the content to the service file
 echo "$SERVICE_CONTENT" | tee "$SERVICE_FILE" > /dev/null
 
-echo -e "Systemd service file created at ${GREEN}$SERVICE_FILE${NC} with provided details."
+echo -e "Systemd service file created at ${GREEN}$SERVICE_FILE${NC} with provided NEWT VPN Client details."
 echo -e "${YELLOW}Now, reloading systemd,  enabling/starting the service:${NC}"
 systemctl daemon-reload
 systemctl enable newt.service
