@@ -60,9 +60,9 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   echo -e "  Enable Docker Socket Access: ${YELLOW}${DOCKER_SOCKET}${NC}"
   echo ""
 
-  #read -p "Do you want to proceed with these values? (y/N) " CONFIRM_PROCEED < /dev/tty
-  read -p "${YELLOW}Do you want to proceed with these values? (y/N)${NC} " CONFIRM_PROCEED < /dev/tty
-  #echo -e "Do you want to proceed with these values? ${YELLOW}(y/N)${NC}"
+  read -p "Do you want to proceed with these values? (y/N) " CONFIRM_PROCEED < /dev/tty
+  #read -p "${YELLOW}Do you want to proceed with these values? (y/N)${NC} " CONFIRM_PROCEED < /dev/tty
+  #echo -e "${YELLOW}Do you want to proceed with these values? (y/N)${NC} "
   #read CONFIRM_PROCEED < /dev/tty
   if [[ ! "${CONFIRM_PROCEED}" =~ ^[Yy]$ ]]; then
     echo -e "${RED}Operation cancelled by user.${NC}"
@@ -99,8 +99,8 @@ case "$ARCH" in
     NEWT_ARCH="arm64"
     ;;
   *)
-    echo "Error: Unsupported architecture: $ARCH"
-    echo "This script supports amd64 and arm64."
+    echo -e "${RED}Error: Unsupported architecture: $ARCH${NC}"
+    echo -e "${RED}This script supports amd64 and arm64.${NC}"
     exit 1
     ;;
 esac
@@ -112,10 +112,10 @@ echo "Detected architecture: $ARCH ($NEWT_ARCH)"
 LATEST_RELEASE_URL=$(curl -sL "https://api.github.com/repos/fosrl/newt/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 
 if [ -z "$LATEST_RELEASE_URL" ]; then
-  echo "Error: Could not fetch latest Newt release tag from GitHub."
+  echo -e "${RED}Error: Could not fetch latest Newt release tag from GitHub.${NC}"
   exit 1 # Exit if we can't get the latest version tag
 else
-  echo "Latest release tag found: $LATEST_RELEASE_URL"
+  echo -e "${GREEN}Latest release tag found: $LATEST_RELEASE_URL${NC}"
   # Construct the download URL using the found tag name and detected architecture
   DOWNLOAD_URL="https://github.com/fosrl/newt/releases/download/${LATEST_RELEASE_URL}/newt_linux_${NEWT_ARCH}"
 
@@ -126,12 +126,12 @@ else
   # else
     echo "Attempting to download Newt binary for ${ARCH} from $DOWNLOAD_URL"
     if ! wget -O /tmp/newt_temp "$DOWNLOAD_URL"; then
-      echo "Error: Failed to download Newt binary from $DOWNLOAD_URL."
-      echo "Please check the URL and your network connection."
+      echo -e "${RED}Error: Failed to download Newt binary from $DOWNLOAD_URL.${NC}"
+      echo -e "${YELLOW}Please check the URL and your network connection.${NC}"
       exit 1
     fi
 
-    echo "Installing Newt binary to $NEWT_BIN_PATH"
+    echo -e "Installing Newt binary to ${GREEN}$NEWT_BIN_PATH${NC}"
     chmod +x /tmp/newt_temp
     mv /tmp/newt_temp "$NEWT_BIN_PATH"
     echo "Newt binary updated successfully."
@@ -207,8 +207,8 @@ fi
 # Write the content to the service file
 echo "$SERVICE_CONTENT" | tee "$SERVICE_FILE" > /dev/null
 
-echo "Systemd service file created at $SERVICE_FILE with provided details."
-echo "Now, reloading systemd,  enabling/starting the service:"
+echo -e "Systemd service file created at ${GREEN}$SERVICE_FILE${NC} with provided details."
+echo -e "${YELLOW}Now, reloading systemd,  enabling/starting the service:${NC}"
 systemctl daemon-reload
 systemctl enable newt.service
 systemctl start newt.service
