@@ -5,6 +5,12 @@
 # curl -sL https://raw.githubusercontent.com/dpurnam/scripts/main/newt-installer-updater.sh | sudo bash
 # sudo rm newt-installer-updater.sh
 
+# ANSI color codes
+RED='\e[31m'
+GREEN='\e[32m'
+YELLOW='\e[33m'
+NC='\e[0m' # No Color
+
 # Define the target path for the systemd service file
 SERVICE_FILE="/etc/systemd/system/newt.service"
 NEWT_BIN_PATH="/usr/local/bin/newt"
@@ -42,21 +48,23 @@ if [[ -f "${SERVICE_FILE}" ]]; then
     NEWT_NATIVE="y"
   fi
   if echo "${exec_start_line}" | grep -q -- --docker-socket; then
-    DOCKER_SOCET="y"
+    DOCKER_SOCKET="y"
   fi
 
-  echo "Captured existing newt info from ${SERVICE_FILE}:"
-  echo "  ID: ${NEWT_ID}"
-  echo "  Secret: ${NEWT_SECRET}"
-  echo "  Endpoint: ${PANGOLIN_ENDPOINT}"
-  echo "  Accept Newt/OLM Clients Access: ${NEWT_CLIENTS}"
-  echo "  Enable Newt Native Mode: ${NEWT_NATIVE}"
-  echo "  Enable Docker Socket Access: ${DOCKER_SOCKET}"
+  echo -e "Captured existing newt info from ${GREEN}${SERVICE_FILE}${NC}:"
+  echo "  ID: ${YELLOW}${NEWT_ID}${NC}"
+  echo "  Secret: ${YELLOW}${NEWT_SECRET}${NC}"
+  echo "  Endpoint: ${YELLOW}${PANGOLIN_ENDPOINT}${NC}"
+  echo "  Accept Newt/OLM Clients Access: ${YELLOW}${NEWT_CLIENTS}${NC}"
+  echo "  Enable Newt Native Mode: ${YELLOW}${NEWT_NATIVE}${NC}"
+  echo "  Enable Docker Socket Access: ${YELLOW}${DOCKER_SOCKET}${NC}"
   echo ""
 
-  read -p "Do you want to proceed with these values? (y/N) " CONFIRM_PROCEED < /dev/tty
+  #read -p "Do you want to proceed with these values? (y/N) " CONFIRM_PROCEED < /dev/tty
+  echo -e "Do you want to proceed with these values? ${YELLOW}(y/N)${NC}"
+  read CONFIRM_PROCEED < /dev/tty
   if [[ ! "${CONFIRM_PROCEED}" =~ ^[Yy]$ ]]; then
-    echo "Operation cancelled by user."
+    echo -e "${RED}Operation cancelled by user.${NC}"
     exit 0 # Exit cleanly if the user doesn't confirm
   fi
   echo ""
