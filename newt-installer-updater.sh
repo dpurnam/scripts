@@ -1,5 +1,5 @@
 #!/bin/bash
-# Newt Client Installer/Updater Script
+# Newt VPN Client Installer/Updater Script for Debain
 # https://docs.fossorial.io/Newt/install#binary
 # How to USE:
 # curl -sL https://raw.githubusercontent.com/dpurnam/scripts/main/newt-installer-updater.sh | sudo bash
@@ -76,12 +76,12 @@ if [[ -f "${SERVICE_FILE}" ]]; then
       read -p "Enter the Newt Client ID: " NEWT_ID < /dev/tty
       read -p "Enter the Newt Client Secret: " NEWT_SECRET < /dev/tty
       read -p "Enter the Pangolin Endpoint (ex. https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
-      read -p "Accept Newt/OLM Clients Access? (y/N): " NEWT_CLIENTS < /dev/tty
-      read -p "Enable Newt Native Mode (y/N): " NEWT_NATIVE < /dev/tty
-      read -p "Enable Docker Socket Access (requires Native Mode) (y/N): " DOCKER_SOCKET < /dev/tty
-      if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ && "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
+      read -p "Enable Docker Socket Access (y/N): " DOCKER_SOCKET < /dev/tty
+      if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
         read -p "Enter Docker Socket Path (ex. /var/run/docker.sock): " DOCKER_SOCKET_PATH < /dev/tty
       fi
+      read -p "Accept Newt/OLM Clients Access? (y/N): " NEWT_CLIENTS < /dev/tty
+      read -p "Enable Newt Native Mode (y/N): " NEWT_NATIVE < /dev/tty
       echo ""
     fi
   fi
@@ -92,12 +92,12 @@ else
   read -p "Enter the Newt Client ID: " NEWT_ID < /dev/tty
   read -p "Enter the Newt Client Secret: " NEWT_SECRET < /dev/tty
   read -p "Enter the Pangolin Endpoint (ex. https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
-  read -p "Accept Newt/OLM Clients Access? (y/N): " NEWT_CLIENTS < /dev/tty
-  read -p "Enable Newt Native Mode (y/N): " NEWT_NATIVE < /dev/tty
-  read -p "Enable Docker Socket Access (requires Native Mode) (y/N): " DOCKER_SOCKET < /dev/tty
-  if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ && "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
+  read -p "Enable Docker Socket Access (y/N): " DOCKER_SOCKET < /dev/tty
+  if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
     read -p "Enter Docker Socket Path (ex. /var/run/docker.socket): " DOCKER_SOCKET_PATH < /dev/tty
   fi
+  read -p "Accept Newt/OLM Clients Access? (y/N): " NEWT_CLIENTS < /dev/tty
+  read -p "Enable Newt Native Mode (y/N): " NEWT_NATIVE < /dev/tty
   echo ""
 fi
 
@@ -165,7 +165,7 @@ ExecStartValue="/usr/local/bin/newt --id ${NEWT_ID} --secret ${NEWT_SECRET} --en
 if [[ "${NEWT_CLIENTS}" =~ ^[Yy]$ ]]; then
     ExecStartValue="${ExecStartValue} --accept-clients"
 fi
-if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ && "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
+if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ && -n "${DOCKER_SOCKET_PATH}" ]]; then
     ExecStartValue="${ExecStartValue} --docker-socket ${DOCKER_SOCKET_PATH}"
 fi
 if [[ "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
