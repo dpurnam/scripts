@@ -3,6 +3,9 @@
 # https://docs.fossorial.io/Newt/install#binary
 # How to USE:
 # curl -sL https://raw.githubusercontent.com/dpurnam/scripts/main/newt-installer-updater.sh | sudo bash
+#
+# Assumptions:
+# 1. A group named docker exists with Read/Write Permissions to the Docker Socket file
 
 # ANSI color codes
 RED='\e[31m'
@@ -216,7 +219,11 @@ WantedBy=multi-user.target
 EOF2
     # Create the directory for the newt user and group if they don't exist
     getent group newt >/dev/null || groupadd newt
-    getent passwd newt >/dev/null || useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
+    if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
+        getent passwd newt >/dev/null || useradd -r -g newt -G docker -s /usr/sbin/nologin -c "Newt Service User" newt
+    else
+        getent passwd newt >/dev/null || useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
+    fi
     mkdir -p "${NEWT_LIB_PATH}"
     chown newt:newt "${NEWT_LIB_PATH}"
 fi
