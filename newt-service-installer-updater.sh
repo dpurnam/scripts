@@ -1,8 +1,8 @@
 #!/bin/bash
-# Newt VPN Client Installer/Updater Script for Debain
+# Newt VPN Client Installer/Updater Script for Debain - as a Service unit
 # https://docs.fossorial.io/Newt/install#binary
 # How to USE:
-# curl -sL https://raw.githubusercontent.com/dpurnam/scripts/main/newt-installer-updater.sh | sudo bash
+# curl -sL https://raw.githubusercontent.com/dpurnam/scripts/main/newt-service-installer-updater.sh | sudo bash
 #
 # Assumptions:
 # 1. A group named docker exists with Read/Write Permissions to the Docker Socket file
