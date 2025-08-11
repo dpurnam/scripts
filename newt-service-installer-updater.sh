@@ -134,17 +134,17 @@ if [[ "${CONFIRM_UPGRADE_DOWNGRADE}" =~ ^[Uu]$ ]]; then
   LATEST_RELEASE_TAG=$(curl -sL "https://api.github.com/repos/fosrl/newt/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
   RELEASE_URL="https://github.com/fosrl/newt/releases/download/${LATEST_RELEASE_TAG}/${NEWT_ARCH}"
   #RELEASE_URL="https://github.com/fosrl/newt/releases/download/latest/newt_linux_${NEWT_ARCH}"
-else
+elif [[ "${CONFIRM_UPGRADE_DOWNGRADE}" =~ ^[Dd]$ ]]; then
   RELEASE_URL="https://github.com/fosrl/newt/releases/download/1.3.4/newt_linux_${NEWT_ARCH}"
 fi
-if [ -z "$RELEASE_URL" ]; then
+if [ -z "${RELEASE_URL}" ]; then
   echo -e "${RED}Error: Could not fetch Newt release url from GitHub.${NC}"
   exit 1 # Exit if we can't get the latest version tag
 else
   echo -e "${GREEN}New release url found: $RELEASE_URL${NC}"
   # Construct the download URL using the found tag name and detected architecture
   #DOWNLOAD_URL="https://github.com/fosrl/newt/releases/download/${LATEST_RELEASE_URL}/newt_linux_${NEWT_ARCH}"
-  DOWNLOAD_URL="$RELEASE_URL"
+  DOWNLOAD_URL="${RELEASE_URL}"
   # Check if the binary already exists and is the latest version (optional but good practice)
   # This part is complex without knowing the installed version, so we'll just download and replace
   # if [ -f "$NEWT_BIN_PATH" ] && "$NEWT_BIN_PATH" --version 2>/dev/null | grep -q "$LATEST_RELEASE_URL"; then
