@@ -65,7 +65,11 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   echo -e "  Docker Socket Path: ${YELLOW}${DOCKER_SOCKET_PATH}${NC}"
   echo ""
 
-  read -p "Do you want to proceed with these values? (y/N) " CONFIRM_PROCEED < /dev/tty
+  read -p "Do you want to upgrade to latest version or Downgrade to v1.3.4? (u/D) " CONFIRM_UPGRADE_DOWNGRADE < /dev/tty
+  if [[ "${CONFIRM_UPGRADE_DOWNGRADE}" =~ ^[Dd$ ]]; then
+        DOWNLOAD_URL="https://github.com/fosrl/newt/releases/download/1.3.4/newt_linux_${NEWT_ARCH}"
+  fi
+  read -p "Do you want to proceed with these existing values? (y/N) " CONFIRM_PROCEED < /dev/tty
   #read -p "${YELLOW}Do you want to proceed with these values? (y/N)${NC} " CONFIRM_PROCEED < /dev/tty
   #echo -e "${YELLOW}Do you want to proceed with these values? (y/N)${NC} "
   #read CONFIRM_PROCEED < /dev/tty
@@ -137,8 +141,9 @@ if [ -z "$LATEST_RELEASE_URL" ]; then
 else
   echo -e "${GREEN}Latest release tag found: $LATEST_RELEASE_URL${NC}"
   # Construct the download URL using the found tag name and detected architecture
-  DOWNLOAD_URL="https://github.com/fosrl/newt/releases/download/${LATEST_RELEASE_URL}/newt_linux_${NEWT_ARCH}"
-
+  if [[ "${CONFIRM_UPGRADE_DOWNGRADE}" =~ ^[Uu$ ]]; then
+      DOWNLOAD_URL="https://github.com/fosrl/newt/releases/download/${LATEST_RELEASE_URL}/newt_linux_${NEWT_ARCH}"
+  fi
   # Check if the binary already exists and is the latest version (optional but good practice)
   # This part is complex without knowing the installed version, so we'll just download and replace
   # if [ -f "$NEWT_BIN_PATH" ] && "$NEWT_BIN_PATH" --version 2>/dev/null | grep -q "$LATEST_RELEASE_URL"; then
@@ -154,7 +159,7 @@ else
     echo -e "Installing ${GREEN}Newt binary to $NEWT_BIN_PATH${NC}"
     chmod +x /tmp/newt_temp
     mv /tmp/newt_temp "$NEWT_BIN_PATH"
-    echo -e "${GREEN}Newt binary updated successfully.${NC}"
+    echo -e "${GREEN}Newt binary installed successfully.${NC}"
     echo ""
   # fi
 fi
@@ -164,14 +169,16 @@ fi
 # Initialize ExecStartValue
 ExecStartValue="/usr/local/bin/newt --id ${NEWT_ID} --secret ${NEWT_SECRET} --endpoint ${PANGOLIN_ENDPOINT}"
 
-# Conditionally add --accept-clients, --native or --docker-socket flags
-if [[ "${NEWT_CLIENTS}" =~ ^[Yy]$ ]]; then
-    ExecStartValue="${ExecStartValue} --accept-clients"
+# Conditionally add --accept-clients, --native or --docker-socket flags - ONLY for Upgrade Choice
+if [[ "${CONFIRM_UPGRADE_DOWNGRADE}" =~ ^[Uu$ ]]; then
+    if [[ "${NEWT_CLIENTS}" =~ ^[Yy]$ ]]; then
+        ExecStartValue="${ExecStartValue} --accept-clients"
+    fi
+    if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ && -n "${DOCKER_SOCKET_PATH}" ]]; then
+        ExecStartValue="${ExecStartValue} --docker-socket ${DOCKER_SOCKET_PATH}"
+    fi
 fi
-if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ && -n "${DOCKER_SOCKET_PATH}" ]]; then
-    ExecStartValue="${ExecStartValue} --docker-socket ${DOCKER_SOCKET_PATH}"
-fi
-if [[ "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
+if [[ "${NEWT_NATIVE}" =~ ^[Yy]$ && "${CONFIRM_UPGRADE_DOWNGRADE}" =~ ^[Uu$ ]]; then
     read -r -d '' SERVICE_CONTENT << EOF1
 [Unit]
 Description=Newt VPN Client Service (Native Mode)
