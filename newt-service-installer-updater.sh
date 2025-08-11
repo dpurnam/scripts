@@ -132,8 +132,7 @@ echo "Detected architecture: $ARCH ($NEWT_ARCH)"
 # Use -s for silent, -L for follow redirects
 if [[ "${CONFIRM_UPGRADE_DOWNGRADE}" =~ ^[Uu]$ ]]; then
   LATEST_RELEASE_TAG=$(curl -sL "https://api.github.com/repos/fosrl/newt/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-  RELEASE_URL="https://github.com/fosrl/newt/releases/download/${LATEST_RELEASE_TAG}/${NEWT_ARCH}"
-  #RELEASE_URL="https://github.com/fosrl/newt/releases/download/latest/newt_linux_${NEWT_ARCH}"
+  RELEASE_URL="https://github.com/fosrl/newt/releases/download/${LATEST_RELEASE_TAG}/newt_linux_${NEWT_ARCH}"
 elif [[ "${CONFIRM_UPGRADE_DOWNGRADE}" =~ ^[Dd]$ ]]; then
   RELEASE_URL="https://github.com/fosrl/newt/releases/download/1.3.4/newt_linux_${NEWT_ARCH}"
 fi
