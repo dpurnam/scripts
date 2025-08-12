@@ -7,6 +7,8 @@
 # Assumptions:
 # 1. A group named docker exists with Read/Write Permissions to the Docker Socket file
 
+set -euo pipefail
+
 # ANSI color codes
 RED='\e[31m'
 GREEN='\e[32m'
@@ -78,11 +80,11 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   echo -e "${BOLD}==================================================================${NC}"
   echo ""
 
-  read -p "$(echo -e "${BOLD}Upgrade${NC} to latest version or ${BOLD}Remove${NC} Newt? ${YELLOW}${BOLD}(u/R)${NC}: ")" CONFIRM_UPGRADE_REMOVE < /dev/tty
+  read -p "$(echo -e "${BOLD}Upgrade${NC} to latest version or ${BOLD}Remove${NC} ${ITALIC}$(newt -version)${NC}? ${YELLOW}${BOLD}${ITALIC}(u/R)${NC}: ")" CONFIRM_UPGRADE_REMOVE < /dev/tty
   if [[ ! "${CONFIRM_UPGRADE_REMOVE}" =~ ^[Rr]$ ]]; then
-      read -p "$(echo -e "Proceed with ${BOLD}ALL the existing${NC} values? ${YELLOW}${BOLD}(y/N)${NC}: ")" CONFIRM_PROCEED < /dev/tty
+      read -p "$(echo -e "Proceed with ${BOLD}ALL the existing${NC} values? ${YELLOW}${BOLD}${ITALIC}(y/N)${NC}: ")" CONFIRM_PROCEED < /dev/tty
       if [[ ! "${CONFIRM_PROCEED}" =~ ^[Yy]$ ]]; then
-        read -p "$(echo -e "Provide ${BOLD}New${NC} values? ${YELLOW}${BOLD}(y/N)${NC}: ")" CONFIRM_PROVIDE < /dev/tty
+        read -p "$(echo -e "Provide ${BOLD}New${NC} values? ${YELLOW}${BOLD}${ITALIC}(y/N)${NC}: ")" CONFIRM_PROVIDE < /dev/tty
         if [[ ! "${CONFIRM_PROVIDE}" =~ ^[Yy]$ ]]; then
           echo -e "${RED}Operation cancelled by user.${NC}"
           exit 0 # Exit cleanly if the user doesn't confirm
