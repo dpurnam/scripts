@@ -75,11 +75,11 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   echo -e "  Docker Socket Path: ${ITALIC}${YELLOW}${DOCKER_SOCKET_PATH}${NC}"
   echo ""
 
-  read -p "$(echo -e "Upgrade to latest version or Remove Newt? ${YELLOW}${BOLD}(u/R)${NC} ")" CONFIRM_UPGRADE_REMOVE < /dev/tty
+  read -p "$(echo -e "${BOLD}Upgrade${NC} to latest version or ${BOLD}Remove${NC} Newt? ${YELLOW}${BOLD}(u/R)${NC} ")" CONFIRM_UPGRADE_REMOVE < /dev/tty
   if [[ ! "${CONFIRM_UPGRADE_REMOVE}" =~ ^[Rr]$ ]]; then
-      read -p "$(echo -e "Proceed with ALL the existing values? ${YELLOW}${BOLD}(y/N)${NC} ")" CONFIRM_PROCEED < /dev/tty
+      read -p "$(echo -e "Proceed with ${BOLD}ALL the existing${NC} values? ${YELLOW}${BOLD}(y/N)${NC} ")" CONFIRM_PROCEED < /dev/tty
       if [[ ! "${CONFIRM_PROCEED}" =~ ^[Yy]$ ]]; then
-        read -p "Provide New values? (y/N) " CONFIRM_PROVIDE < /dev/tty
+        read -p "$(echo -e "Provide ${BOLD}New${NC} ${YELLOW}${BOLD}values? (y/N)${NC} ")" CONFIRM_PROVIDE < /dev/tty
         if [[ ! "${CONFIRM_PROVIDE}" =~ ^[Yy]$ ]]; then
           echo -e "${RED}Operation cancelled by user.${NC}"
           exit 0 # Exit cleanly if the user doesn't confirm
@@ -89,17 +89,23 @@ if [[ -f "${SERVICE_FILE}" ]]; then
           #read -p "Provide Newt Client ID. or hit enter to use ($NEWT_ID): " NEWT_ID_input < /dev/tty
           #NEWT_ID="${NEWT_ID_input:-$NEWT_ID}"
           NEWT_ID=$(prompt_with_default "Provide the Newt Client ID." "$NEWT_ID")
-          read -p "Provide Newt Client Secret. or hit enter to use ($NEWT_SECRET): " NEWT_SECRET_input < /dev/tty
-          NEWT_SECRET="${NEWT_SECRET_input:-$NEWT_SECRET}"
-          read -p "Provide Pangolin Endpoint. or hit enter to use ($PANGOLIN_ENDPOINT): " PANGOLIN_ENDPOINT_input < /dev/tty
-          PANGOLIN_ENDPOINT="${PANGOLIN_ENDPOINT_input:-$PANGOLIN_ENDPOINT}"
-          read -p "Enable Docker Socket Access (y/N): " DOCKER_SOCKET < /dev/tty
+          
+          #read -p "Provide Newt Client Secret. or hit enter to use ($NEWT_SECRET): " NEWT_SECRET_input < /dev/tty
+          #NEWT_SECRET="${NEWT_SECRET_input:-$NEWT_SECRET}"
+          NEWT_SECRET=$(prompt_with_default "Provide Newt Client Secret." "$NEWT_SECRET")
+          
+          #read -p "Provide Pangolin Endpoint. or hit enter to use ($PANGOLIN_ENDPOINT): " PANGOLIN_ENDPOINT_input < /dev/tty
+          #PANGOLIN_ENDPOINT="${PANGOLIN_ENDPOINT_input:-$PANGOLIN_ENDPOINT}"
+          PANGOLIN_ENDPOINT=$(prompt_with_default "Provide Pangolin Endpoint." "$PANGOLIN_ENDPOINT")
+          
+          read -p "$(echo -e "Enable ${BOLD}Docker Socket${NC} Access ${YELLOW}${BOLD}(y/N)${NC}: ")" DOCKER_SOCKET < /dev/tty
           if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
-            read -p "Provide Docker Socket Path. or hit enter to use ($DOCKER_SOCKET_PATH): " DOCKER_SOCKET_PATH_input < /dev/tty
-            DOCKER_SOCKET_PATH="${DOCKER_SOCKET_PATH_input:-$DOCKER_SOCKET_PATH}"
+            #read -p "Provide Docker Socket Path. or hit enter to use ($DOCKER_SOCKET_PATH): " DOCKER_SOCKET_PATH_input < /dev/tty
+            #DOCKER_SOCKET_PATH="${DOCKER_SOCKET_PATH_input:-$DOCKER_SOCKET_PATH}"
+            DOCKER_SOCKET_PATH=$(prompt_with_default "Provide Docker Socket Path." "$DOCKER_SOCKET_PATH")
           fi
-          read -p "Enable Newt/OLM Clients Access? (y/N): " NEWT_CLIENTS < /dev/tty
-          read -p "Enable Newt Native Mode (y/N): " NEWT_NATIVE < /dev/tty
+          read -p "$(echo -e "Enable ${BOLD}OLM Clients${NC} Access? ${YELLOW}${BOLD}(y/N)${NC}: ")" NEWT_CLIENTS < /dev/tty
+          read -p "$(echo -e "Enable ${BOLD}Native${NC} Mode ${YELLOW}${BOLD}(y/N)${NC}: ")" NEWT_NATIVE < /dev/tty
         fi
       fi
   else
