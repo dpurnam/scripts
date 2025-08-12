@@ -270,16 +270,20 @@ EOF2
     chown newt:newt "${NEWT_LIB_PATH}"
 fi
 
+# Stop the Service, if it exists
+if [[ -f "${SERVICE_FILE}" ]]; then
+    systemctl stop $SERVICE_NAME
+fi
 # Write the content to the service file
 echo "$SERVICE_CONTENT" | tee "$SERVICE_FILE" > /dev/null
-echo -e "Systemd service file (re)created at ${GREEN}$SERVICE_FILE${NC} with provided NEWT VPN Client details."
+echo -e "Systemd service file (re)created at ${BOLD}${GREEN}$SERVICE_FILE${NC} with provided NEWT VPN Client details."
 echo ""
-echo -e "${YELLOW}Enabling/Starting the service:${NC}"
-systemctl stop $SERVICE_NAME
+echo -e "${YELLOW}Enabling/Starting the service followed with daemon-reload:${NC}"
+echo ""
 systemctl daemon-reload
 systemctl enable $SERVICE_NAME
 systemctl start $SERVICE_NAME
-systemctl status $SERVICE_NAME | cat
+systemctl status $SERVICE_NAME
 echo ""
-echo -e "${GREEN}Newt VPN Client Service installed. Goodbye!${NC}"
+echo -e "${BOLD}${GREEN}Newt VPN Client Service installed. Goodbye!${NC}"
 exit 0
