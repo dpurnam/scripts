@@ -55,7 +55,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
     DOCKER_SOCKET_PATH="$(echo "${exec_start_line}" | sed -n 's/.*--docker-socket \(\S\+\).*/\1/p')"
   fi
 
-  echo -e "Captured existing newt info from ${GREEN}${SERVICE_FILE}${NC}:"
+  echo -e "Captured existing Newt info from ${GREEN}${SERVICE_FILE}${NC}:"
   echo -e "  ID: ${YELLOW}${NEWT_ID}${NC}"
   echo -e "  Secret: ${YELLOW}${NEWT_SECRET}${NC}"
   echo -e "  Endpoint: ${YELLOW}${PANGOLIN_ENDPOINT}${NC}"
@@ -65,34 +65,45 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   echo -e "  Docker Socket Path: ${YELLOW}${DOCKER_SOCKET_PATH}${NC}"
   echo ""
 
-  read -p "Do you want to upgrade to latest version or Downgrade to v1.3.4? (u/D) " CONFIRM_UPGRADE_DOWNGRADE < /dev/tty
-  read -p "Do you want to proceed with these existing values? (y/N) " CONFIRM_PROCEED < /dev/tty
-  #read -p "${YELLOW}Do you want to proceed with these values? (y/N)${NC} " CONFIRM_PROCEED < /dev/tty
-  #echo -e "${YELLOW}Do you want to proceed with these values? (y/N)${NC} "
-  #read CONFIRM_PROCEED < /dev/tty
-  if [[ ! "${CONFIRM_PROCEED}" =~ ^[Yy]$ ]]; then
-    read -p "Do you want to provide New values? (y/N) " CONFIRM_PROVIDE < /dev/tty
-    if [[ ! "${CONFIRM_PROVIDE}" =~ ^[Yy]$ ]]; then
-      echo -e "${RED}Operation cancelled by user.${NC}"
-      exit 0 # Exit cleanly if the user doesn't confirm
-    else
-      echo ""
-      read -p "Enter the Newt Client ID: " NEWT_ID < /dev/tty
-      read -p "Enter the Newt Client Secret: " NEWT_SECRET < /dev/tty
-      read -p "Enter the Pangolin Endpoint (ex. https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
-      read -p "Enable Docker Socket Access (y/N): " DOCKER_SOCKET < /dev/tty
-      if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
-        read -p "Enter Docker Socket Path (ex. /var/run/docker.sock): " DOCKER_SOCKET_PATH < /dev/tty
+  read -p "Do you want to upgrade to latest version or Remove Newt? (u/R) " CONFIRM_UPGRADE_REMOVE < /dev/tty
+  if [[ ! "${CONFIRM_UPGRADE_REMOVE}" =~ ^[Rr]$ ]]; then
+      read -p "Do you want to proceed with these existing values? (y/N) " CONFIRM_PROCEED < /dev/tty
+      if [[ ! "${CONFIRM_PROCEED}" =~ ^[Yy]$ ]]; then
+        read -p "Do you want to provide New values? (y/N) " CONFIRM_PROVIDE < /dev/tty
+        if [[ ! "${CONFIRM_PROVIDE}" =~ ^[Yy]$ ]]; then
+          echo -e "${RED}Operation cancelled by user.${NC}"
+          exit 0 # Exit cleanly if the user doesn't confirm
+        else
+          echo ""
+          echo -e "${YELLOW}Initiating Newt Service Re-installation...${NC}"
+          read -p "Enter the Newt Client ID: " NEWT_ID < /dev/tty
+          read -p "Enter the Newt Client Secret: " NEWT_SECRET < /dev/tty
+          read -p "Enter the Pangolin Endpoint (ex. https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
+          read -p "Enable Docker Socket Access (y/N): " DOCKER_SOCKET < /dev/tty
+          if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
+            read -p "Enter Docker Socket Path (ex. /var/run/docker.sock): " DOCKER_SOCKET_PATH < /dev/tty
+          fi
+          read -p "Enable Newt/OLM Clients Access? (y/N): " NEWT_CLIENTS < /dev/tty
+          read -p "Enable Newt Native Mode (y/N): " NEWT_NATIVE < /dev/tty
+        fi
       fi
-      read -p "Accept Newt/OLM Clients Access? (y/N): " NEWT_CLIENTS < /dev/tty
-      read -p "Enable Newt Native Mode (y/N): " NEWT_NATIVE < /dev/tty
-      echo ""
-    fi
+  else
+      # --- Newt Service Removal ---
+      systemctl stop $SERVICE_NAME
+      systemctl disable $SERVICE_NAME
+      rm /etc/systemd/system/$SERVICE_NAME
+      systemctl daemon-reload
+      getent user newt >/dev/null && userdel -r newt ; getent group newt >/dev/null && groupdel newt
+      rmdir -p "${NEWT_LIB_PATH}"
+      rm "$NEWT_BIN_PATH"
+      echo -e "${YELLOW}Removed Newt user, group and service. Goodbye!${NC}"
+      exit 0
   fi
   echo ""
-# --- or Capture User Input ---
+# --- or Capture User Input for First Time Service Installation ---
 else
   echo ""
+  echo -e "${YELLOW}Initiating Newt Service Installation...${NC}"
   read -p "Enter the Newt Client ID: " NEWT_ID < /dev/tty
   read -p "Enter the Newt Client Secret: " NEWT_SECRET < /dev/tty
   read -p "Enter the Pangolin Endpoint (ex. https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
@@ -100,14 +111,14 @@ else
   if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
     read -p "Enter Docker Socket Path (ex. /var/run/docker.socket): " DOCKER_SOCKET_PATH < /dev/tty
   fi
-  read -p "Accept Newt/OLM Clients Access? (y/N): " NEWT_CLIENTS < /dev/tty
+  read -p "Enable Newt/OLM Clients Access? (y/N): " NEWT_CLIENTS < /dev/tty
   read -p "Enable Newt Native Mode (y/N): " NEWT_NATIVE < /dev/tty
   echo ""
 fi
 
 # --- Newt Binary Download and Update Section ---
 echo ""
-echo "Checking for the latest Newt binary..."
+echo -e "${YELLOW}Checking for the latest Newt binary...${NC}"
 
 # Detect system architecture
 ARCH=$(dpkg --print-architecture) # Common command on Debian/Ubuntu-based systems
@@ -130,11 +141,9 @@ echo "Detected architecture: $ARCH ($NEWT_ARCH)"
 
 # Get the latest release tag from GitHub API
 # Use -s for silent, -L for follow redirects
-if [[ "${CONFIRM_UPGRADE_DOWNGRADE}" =~ ^[Uu]$ ]]; then
+if [[ "${CONFIRM_UPGRADE_REMOVE}" =~ ^[Uu]$ ]]; then
   LATEST_RELEASE_TAG=$(curl -sL "https://api.github.com/repos/fosrl/newt/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
   RELEASE_URL="https://github.com/fosrl/newt/releases/download/${LATEST_RELEASE_TAG}/newt_linux_${NEWT_ARCH}"
-elif [[ "${CONFIRM_UPGRADE_DOWNGRADE}" =~ ^[Dd]$ ]]; then
-  RELEASE_URL="https://github.com/fosrl/newt/releases/download/1.3.4/newt_linux_${NEWT_ARCH}"
 fi
 if [ -z "${RELEASE_URL}" ]; then
   echo -e "${RED}Error: Could not fetch Newt release url from GitHub.${NC}"
@@ -170,15 +179,13 @@ fi
 ExecStartValue="/usr/local/bin/newt --id ${NEWT_ID} --secret ${NEWT_SECRET} --endpoint ${PANGOLIN_ENDPOINT}"
 
 # Conditionally add --accept-clients, --native or --docker-socket flags - ONLY for Upgrade Choice
-if [[ "${CONFIRM_UPGRADE_DOWNGRADE}" =~ ^[Uu$ ]]; then
-    if [[ "${NEWT_CLIENTS}" =~ ^[Yy]$ ]]; then
-        ExecStartValue="${ExecStartValue} --accept-clients"
-    fi
-    if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ && -n "${DOCKER_SOCKET_PATH}" ]]; then
-        ExecStartValue="${ExecStartValue} --docker-socket ${DOCKER_SOCKET_PATH}"
-    fi
+if [[ "${NEWT_CLIENTS}" =~ ^[Yy]$ ]]; then
+    ExecStartValue="${ExecStartValue} --accept-clients"
 fi
-if [[ "${NEWT_NATIVE}" =~ ^[Yy]$ && "${CONFIRM_UPGRADE_DOWNGRADE}" =~ ^[Uu$ ]]; then
+if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ && -n "${DOCKER_SOCKET_PATH}" ]]; then
+    ExecStartValue="${ExecStartValue} --docker-socket ${DOCKER_SOCKET_PATH}"
+fi
+if [[ "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
     read -r -d '' SERVICE_CONTENT << EOF1
 [Unit]
 Description=Newt VPN Client Service (Native Mode)
