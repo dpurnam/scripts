@@ -7,7 +7,7 @@
 # Assumptions:
 # 1. A group named docker exists with Read/Write Permissions to the Docker Socket file
 
-set -euo pipefail
+#set -euo pipefail
 
 # ANSI color codes
 RED='\e[31m'
