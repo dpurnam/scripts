@@ -278,7 +278,7 @@ fi
 echo "$SERVICE_CONTENT" | tee "$SERVICE_FILE" > /dev/null
 echo -e "===> Systemd service file (re)created at ${BOLD}${GREEN}$SERVICE_FILE${NC} with provided NEWT VPN Client details. <==="
 echo ""
-echo -e "${BOLD}${YELLOW}Enabling/Starting the service followed by daemon-reload...${NC}"
+echo -e "${BOLD}${YELLOW}Enabling/Starting the service after daemon-reload...${NC}"
 echo ""
 systemctl daemon-reload
 systemctl enable $SERVICE_NAME
