@@ -93,7 +93,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
       systemctl disable $SERVICE_NAME
       rm /etc/systemd/system/$SERVICE_NAME
       systemctl daemon-reload
-      getent user newt >/dev/null && userdel -r newt
+      getent passwd newt >/dev/null && userdel -r newt
       getent group newt >/dev/null && groupdel newt
       rm -rf "${NEWT_LIB_PATH}"
       rm "$NEWT_BIN_PATH"
