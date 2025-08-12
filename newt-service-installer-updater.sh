@@ -7,7 +7,7 @@
 # Assumptions:
 # 1. A group named docker exists with Read/Write Permissions to the Docker Socket file
 
-#set -euo pipefail
+set -euo pipefail
 
 # ANSI color codes
 RED='\e[31m'
@@ -123,7 +123,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
       getent group newt >/dev/null && groupdel newt
       rm -rf "${NEWT_LIB_PATH}"
       rm "$NEWT_BIN_PATH"
-      echo -e "${YELLOW}Removed Newt user, group and service. Goodbye!${NC}"
+      echo -e "${BOLD}${YELLOW}Removed Newt user, group and service. Goodbye!${NC}"
       exit 0
   fi
   echo ""
@@ -145,7 +145,7 @@ fi
 
 # --- Newt Binary Download and Update Section ---
 echo ""
-echo -e "${YELLOW}Checking for the latest Newt binary...${NC}"
+echo -e "${BOLD}${YELLOW}Checking for the latest Newt binary...${NC}"
 
 # Detect system architecture
 ARCH=$(dpkg --print-architecture) # Common command on Debian/Ubuntu-based systems
@@ -158,8 +158,8 @@ case "$ARCH" in
     NEWT_ARCH="arm64"
     ;;
   *)
-    echo -e "${RED}Error: Unsupported architecture: $ARCH${NC}"
-    echo -e "${RED}This script supports amd64 and arm64.${NC}"
+    echo -e "${BOLD}${RED}Error: Unsupported architecture: $ARCH${NC}"
+    echo -e "${RED}This script supports ONLY amd64 and arm64.${NC}"
     exit 1
     ;;
 esac
@@ -276,14 +276,17 @@ if [[ -f "${SERVICE_FILE}" ]]; then
 fi
 # Write the content to the service file
 echo "$SERVICE_CONTENT" | tee "$SERVICE_FILE" > /dev/null
-echo -e "Systemd service file (re)created at ${BOLD}${GREEN}$SERVICE_FILE${NC} with provided NEWT VPN Client details."
+echo -e "===> Systemd service file (re)created at ${BOLD}${GREEN}$SERVICE_FILE${NC} with provided NEWT VPN Client details. <==="
 echo ""
-echo -e "${YELLOW}Enabling/Starting the service followed with daemon-reload:${NC}"
+echo -e "${BOLD}${YELLOW}Enabling/Starting the service followed by daemon-reload...${NC}"
 echo ""
 systemctl daemon-reload
 systemctl enable $SERVICE_NAME
 systemctl start $SERVICE_NAME
 systemctl status $SERVICE_NAME
 echo ""
+echo -e "${BOLD}===========================================${NC}"
 echo -e "${BOLD}${GREEN}Newt VPN Client Service installed. Goodbye!${NC}"
+echo -e "${BOLD}===========================================${NC}"
+echo ""
 exit 0
