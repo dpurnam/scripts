@@ -76,9 +76,10 @@ if [[ -f "${SERVICE_FILE}" ]]; then
         else
           echo ""
           echo -e "${YELLOW}Initiating Newt Service Re-installation...${NC}"
-          read -p "Enter the Newt Client ID: " NEWT_ID < /dev/tty
-          read -p "Enter the Newt Client Secret: " NEWT_SECRET < /dev/tty
-          read -p "Enter the Pangolin Endpoint (ex. https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
+          read -p "Enter Newt Client ID. (Defaults to [${NEWT_ID:-none}]): " NEWT_ID_input < /dev/tty
+          NEWT_ID="${NEWT_ID_input:-$NEWT_ID}"
+          read -p "Enter Newt Client Secret: " NEWT_SECRET < /dev/tty
+          read -p "Enter Pangolin Endpoint (ex. https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
           read -p "Enable Docker Socket Access (y/N): " DOCKER_SOCKET < /dev/tty
           if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
             read -p "Enter Docker Socket Path (ex. /var/run/docker.sock): " DOCKER_SOCKET_PATH < /dev/tty
@@ -105,9 +106,9 @@ if [[ -f "${SERVICE_FILE}" ]]; then
 else
   echo ""
   echo -e "${YELLOW}Initiating Newt Service Installation...${NC}"
-  read -p "Enter the Newt Client ID: " NEWT_ID < /dev/tty
-  read -p "Enter the Newt Client Secret: " NEWT_SECRET < /dev/tty
-  read -p "Enter the Pangolin Endpoint (ex. https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
+  read -p "Enter Newt Client ID: " NEWT_ID < /dev/tty
+  read -p "Enter Newt Client Secret: " NEWT_SECRET < /dev/tty
+  read -p "Enter Pangolin Endpoint (ex. https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
   read -p "Enable Docker Socket Access (y/N): " DOCKER_SOCKET < /dev/tty
   if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
     read -p "Enter Docker Socket Path (ex. /var/run/docker.sock): " DOCKER_SOCKET_PATH < /dev/tty
