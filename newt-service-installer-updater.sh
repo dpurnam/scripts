@@ -252,9 +252,11 @@ fi
 echo "$SERVICE_CONTENT" | tee "$SERVICE_FILE" > /dev/null
 echo -e "Systemd service file (re)created at ${GREEN}$SERVICE_FILE${NC} with provided NEWT VPN Client details."
 echo ""
-echo -e "${YELLOW}Now, reloading systemd,  enabling/starting the service:${NC}"
+echo -e "${YELLOW}Enabling/Starting the service:${NC}"
 systemctl stop $SERVICE_NAME
 systemctl daemon-reload
 systemctl enable $SERVICE_NAME
 systemctl start $SERVICE_NAME
 systemctl status $SERVICE_NAME | cat
+echo -e "${GREEN}Newt VPN Client Service installed. Goodbye!${NC}"
+exit 0
