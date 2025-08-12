@@ -33,6 +33,14 @@ DOCKER_SOCKET="N"
 
 # --- Capture Existing Info ---
 if [[ -f "${SERVICE_FILE}" ]]; then
+  # 
+  prompt_with_default() {
+    local prompt="$1"
+    local default="$2"
+    local var_input
+    read -p "$(echo -e "${BOLD}$prompt${NC} (${YELLOW}$default${NC}): ")" var_input < /dev/tty
+    echo "${var_input:-$default}"
+  }
   # Get the ExecStart line
   exec_start_line=$(grep '^ExecStart=' "${SERVICE_FILE}")
 
@@ -76,8 +84,9 @@ if [[ -f "${SERVICE_FILE}" ]]; then
         else
           echo ""
           echo -e "${YELLOW}Initiating Newt Service Re-installation...${NC}"
-          read -p "Provide Newt Client ID. or hit enter to use ($NEWT_ID): " NEWT_ID_input < /dev/tty
-          NEWT_ID="${NEWT_ID_input:-$NEWT_ID}"
+          #read -p "Provide Newt Client ID. or hit enter to use ($NEWT_ID): " NEWT_ID_input < /dev/tty
+          #NEWT_ID="${NEWT_ID_input:-$NEWT_ID}"
+          NEWT_ID=$(prompt_with_default "Provide the Newt Client ID. or hit enter to use" "$NEWT_ID")
           read -p "Provide Newt Client Secret. or hit enter to use ($NEWT_SECRET): " NEWT_SECRET_input < /dev/tty
           NEWT_SECRET="${NEWT_SECRET_input:-$NEWT_SECRET}"
           read -p "Provide Pangolin Endpoint. or hit enter to use ($PANGOLIN_ENDPOINT): " PANGOLIN_ENDPOINT_input < /dev/tty
