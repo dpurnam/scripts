@@ -142,7 +142,7 @@ case "$ARCH" in
     ;;
 esac
 echo ""
-echo -e "Detected architecture: ${GREEN}$ARCH ($NEWT_ARCH)${NC}"
+echo -e "Detected architecture: ${YELLOW}$ARCH ($NEWT_ARCH)${NC}"
 
 # Get the latest release tag from GitHub API
 # Use -s for silent, -L for follow redirects
@@ -152,7 +152,7 @@ if [ -z "${RELEASE_URL}" ]; then
   echo -e "${RED}Error: Could not fetch Newt release url from GitHub.${NC}"
   exit 1 # Exit if we can't get the latest version tag
 else
-  echo -e "New release url found: ${GREEN}$RELEASE_URL${NC}"
+  echo -e "New release url found: ${YELLOW}$RELEASE_URL${NC}"
   # Construct the download URL using the found tag name and detected architecture
   #DOWNLOAD_URL="https://github.com/fosrl/newt/releases/download/${LATEST_RELEASE_URL}/newt_linux_${NEWT_ARCH}"
   DOWNLOAD_URL="${RELEASE_URL}"
@@ -161,13 +161,14 @@ else
   # if [ -f "$NEWT_BIN_PATH" ] && "$NEWT_BIN_PATH" --version 2>/dev/null | grep -q "$LATEST_RELEASE_URL"; then
   #   echo "Newt binary is already the latest version ($LATEST_RELEASE_URL). Skipping download."
   # else
-    echo -e "Attempting to download ${YELLOW}Newt binary for ${ARCH}${NC} from $DOWNLOAD_URL"
-    if ! wget -O /tmp/newt_temp -L "$DOWNLOAD_URL"  >/dev/null; then
+    echo -e "Attempting to download ${YELLOW}Newt binary for ${ARCH}${NC}..."
+    echo ""
+    if ! wget -q -O /tmp/newt_temp -L "$DOWNLOAD_URL"; then
       echo -e "${RED}Error: Failed to download Newt binary from $DOWNLOAD_URL.${NC}"
       echo -e "${YELLOW}Please check the URL and your network connection.${NC}"
       exit 1
     fi
-
+    echo -e "=== ${GREEN}Download Complete${NC} ==="
     echo -e "Installing ${GREEN}Newt binary${NC} to ${GREEN}$NEWT_BIN_PATH${NC}"
     chmod +x /tmp/newt_temp
     mv /tmp/newt_temp "$NEWT_BIN_PATH"
@@ -258,5 +259,6 @@ systemctl daemon-reload
 systemctl enable $SERVICE_NAME
 systemctl start $SERVICE_NAME
 systemctl status $SERVICE_NAME | cat
+echo ""
 echo -e "${GREEN}Newt VPN Client Service installed. Goodbye!${NC}"
 exit 0
