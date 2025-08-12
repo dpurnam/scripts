@@ -11,6 +11,7 @@
 RED='\e[31m'
 GREEN='\e[32m'
 YELLOW='\e[93m'
+BOLD='\e[1m'
 NC='\e[0m' # No Color
 
 # Define the target path for the systemd service file
