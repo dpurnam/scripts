@@ -232,8 +232,11 @@ WantedBy=multi-user.target
 EOF2
     # Create the directory for the newt user and group if they don't exist
     getent group newt >/dev/null || groupadd newt
-    if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
+    if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ && getent group docker >/dev/null ]]; then
         getent passwd newt >/dev/null || useradd -r -g newt -G docker -s /usr/sbin/nologin -c "Newt Service User" newt
+    elif [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ && ! getent group docker >/dev/null ]]; then
+        getent passwd newt >/dev/null || useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
+        echo -e "Although standard ${RED}docker${NC} group not found, ${GREEN}Newt${NC} user is (re)created. ${RED}REMEMBER${NC} to add it to your ${YELLOW}custom docker${NC} group!"
     else
         getent passwd newt >/dev/null || useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
     fi
