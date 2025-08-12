@@ -26,7 +26,7 @@ DOCKER_SOCKET_PATH=""
 
 # Check if the script is run with root privileges
 if [ "$EUID" -ne 0 ]; then
-  echo "Please run this script with sudo."
+  echo -e "${RED}${BOLD}Please run this script with sudo.${NC}"
   exit 1
 fi
 
