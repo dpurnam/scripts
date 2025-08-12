@@ -65,6 +65,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
     DOCKER_SOCKET_PATH="$(echo "${exec_start_line}" | sed -n 's/.*--docker-socket \(\S\+\).*/\1/p')"
   fi
 
+  echo -e "${BOLD}=================================================================${NC}"
   echo -e "${BOLD}Captured existing Newt info from ${ITALIC}${GREEN}${SERVICE_FILE}${NC}:"
   echo -e "${BOLD}=================================================================${NC}"
   echo -e "  ID: ${ITALIC}${YELLOW}${NEWT_ID}${NC}"
@@ -100,14 +101,14 @@ if [[ -f "${SERVICE_FILE}" ]]; then
           #PANGOLIN_ENDPOINT="${PANGOLIN_ENDPOINT_input:-$PANGOLIN_ENDPOINT}"
           PANGOLIN_ENDPOINT=$(prompt_with_default "Provide Pangolin Endpoint." "$PANGOLIN_ENDPOINT")
           
-          read -p "$(echo -e "Enable ${BOLD}Docker Socket${NC} Access ${YELLOW}${BOLD}(y/N)${NC}: ")" DOCKER_SOCKET < /dev/tty
+          read -p "$(echo -e "Enable ${BOLD}Docker Socket${NC} Access ${YELLOW}${BOLD}${ITALIC}(y/N)${NC}: ")" DOCKER_SOCKET < /dev/tty
           if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
             #read -p "Provide Docker Socket Path. or hit enter to use ($DOCKER_SOCKET_PATH): " DOCKER_SOCKET_PATH_input < /dev/tty
             #DOCKER_SOCKET_PATH="${DOCKER_SOCKET_PATH_input:-$DOCKER_SOCKET_PATH}"
             DOCKER_SOCKET_PATH=$(prompt_with_default "Provide Docker Socket Path." "$DOCKER_SOCKET_PATH")
           fi
-          read -p "$(echo -e "Enable ${BOLD}OLM Clients${NC} Access? ${YELLOW}${BOLD}(y/N)${NC}: ")" NEWT_CLIENTS < /dev/tty
-          read -p "$(echo -e "Enable ${BOLD}Native${NC} Mode ${YELLOW}${BOLD}(y/N)${NC}: ")" NEWT_NATIVE < /dev/tty
+          read -p "$(echo -e "Enable ${BOLD}OLM Clients${NC} Access? ${YELLOW}${BOLD}${ITALIC}(y/N)${NC}: ")" NEWT_CLIENTS < /dev/tty
+          read -p "$(echo -e "Enable ${BOLD}Native${NC} Mode ${YELLOW}${BOLD}${ITALIC}(y/N)${NC}: ")" NEWT_NATIVE < /dev/tty
         fi
       fi
   else
@@ -131,12 +132,12 @@ else
   read -p "$(echo -e "Provide Newt ${BOLD}Client ID${NC}: ")" NEWT_ID < /dev/tty
   read -p "$(echo -e "Provide Newt ${BOLD}Client Secret${NC}: ")" NEWT_SECRET < /dev/tty
   read -p "$(echo -e "Provide ${BOLD}Pangolin Endpoint${NC} (ex. ${ITALIC}https://pangolin.yourdomain.com${NC}): ")" PANGOLIN_ENDPOINT < /dev/tty
-  read -p "$(echo -e "Enable ${BOLD}Docker Socket${NC} Access ${BOLD}${YELLOW}(y/N)${NC}: ")" DOCKER_SOCKET < /dev/tty
+  read -p "$(echo -e "Enable ${BOLD}Docker Socket${NC} Access ${BOLD}${YELLOW}${ITALIC}(y/N)${NC}: ")" DOCKER_SOCKET < /dev/tty
   if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
     read -p "$(echo -e "Provide ${BOLD}Docker Socket Path${NC} (ex. ${ITALIC}/var/run/docker.sock${NC}): ")" DOCKER_SOCKET_PATH < /dev/tty
   fi
-  read -p "$(echo -e "Enable ${BOLD}OLM Clients${NC} Access? ${BOLD}${YELLOW}(y/N)${NC}: ")" NEWT_CLIENTS < /dev/tty
-  read -p "$(echo -e "Enable ${BOLD}Native${NC} Mode ${BOLD}${YELLOW}(y/N)${NC}: ")" NEWT_NATIVE < /dev/tty
+  read -p "$(echo -e "Enable ${BOLD}OLM Clients${NC} Access? ${BOLD}${YELLOW}${ITALIC}(y/N)${NC}: ")" NEWT_CLIENTS < /dev/tty
+  read -p "$(echo -e "Enable ${BOLD}Native${NC} Mode ${BOLD}${YELLOW}${ITALIC}(y/N)${NC}: ")" NEWT_NATIVE < /dev/tty
   echo ""
 fi
 
