@@ -76,13 +76,16 @@ if [[ -f "${SERVICE_FILE}" ]]; then
         else
           echo ""
           echo -e "${YELLOW}Initiating Newt Service Re-installation...${NC}"
-          read -p "Enter Newt Client ID. (Defaults to [${NEWT_ID:-none}]): " NEWT_ID_input < /dev/tty
+          read -p "Enter Newt Client ID. [${NEWT_ID:-none}]: " NEWT_ID_input < /dev/tty
           NEWT_ID="${NEWT_ID_input:-$NEWT_ID}"
-          read -p "Enter Newt Client Secret: " NEWT_SECRET < /dev/tty
-          read -p "Enter Pangolin Endpoint (ex. https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
+          read -p "Enter Newt Client Secret: " NEWT_SECRET_input < /dev/tty
+          NEWT_SECRET="${NEWT_SECRET_input:-$NEWT_SECRET}"
+          read -p "Enter Pangolin Endpoint [${PANGOLIN_ENDPOINT:-https://pangolin.domain.com}]: " PANGOLIN_ENDPOINT_input < /dev/tty
+          PANGOLIN_ENDPOINT="${PANGOLIN_ENDPOINT_input:-$PANGOLIN_ENDPOINT}"
           read -p "Enable Docker Socket Access (y/N): " DOCKER_SOCKET < /dev/tty
           if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
-            read -p "Enter Docker Socket Path (ex. /var/run/docker.sock): " DOCKER_SOCKET_PATH < /dev/tty
+            read -p "Enter Docker Socket Path [${DOCKER_SOCKET_PATH:-/var/run/docker.sock}]: " DOCKER_SOCKET_PATH_input < /dev/tty
+            DOCKER_SOCKET_PATH="${DOCKER_SOCKET_PATH_input:-$DOCKER_SOCKET_PATH}"
           fi
           read -p "Enable Newt/OLM Clients Access? (y/N): " NEWT_CLIENTS < /dev/tty
           read -p "Enable Newt Native Mode (y/N): " NEWT_NATIVE < /dev/tty
@@ -233,9 +236,9 @@ WantedBy=multi-user.target
 EOF2
     # Create the directory for the newt user and group if they don't exist
     getent group newt >/dev/null || groupadd newt
-    if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ && getent group docker >/dev/null ]]; then
+    if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]] && getent group docker >/dev/null; then
         getent passwd newt >/dev/null || useradd -r -g newt -G docker -s /usr/sbin/nologin -c "Newt Service User" newt
-    elif [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ && ! getent group docker >/dev/null ]]; then
+    elif [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]] && ! getent group docker >/dev/null; then
         getent passwd newt >/dev/null || useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
         echo -e "Although standard ${RED}docker${NC} group not found, ${GREEN}Newt${NC} user is (re)created. ${RED}REMEMBER${NC} to add it to your ${YELLOW}custom docker${NC} group!"
     else
