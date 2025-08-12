@@ -162,7 +162,7 @@ else
   #   echo "Newt binary is already the latest version ($LATEST_RELEASE_URL). Skipping download."
   # else
     echo -e "Attempting to download ${YELLOW}Newt binary for ${ARCH}${NC} from $DOWNLOAD_URL"
-    if ! wget -O /tmp/newt_temp "$DOWNLOAD_URL"; then
+    if ! wget -O /tmp/newt_temp -L "$DOWNLOAD_URL"  >/dev/null; then
       echo -e "${RED}Error: Failed to download Newt binary from $DOWNLOAD_URL.${NC}"
       echo -e "${YELLOW}Please check the URL and your network connection.${NC}"
       exit 1
