@@ -7,7 +7,7 @@
 # Assumptions:
 # 1. A group named docker exists with Read/Write Permissions to the Docker Socket file
 
-set -euo pipefail
+#set -euo pipefail
 
 # ANSI color codes
 RED='\e[31m'
@@ -171,18 +171,18 @@ echo -e "Detected architecture: ${YELLOW}$ARCH ($NEWT_ARCH)${NC}"
 LATEST_RELEASE_TAG=$(curl -sL "https://api.github.com/repos/fosrl/newt/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 RELEASE_URL="https://github.com/fosrl/newt/releases/download/${LATEST_RELEASE_TAG}/newt_linux_${NEWT_ARCH}"
 if [ -z "${RELEASE_URL}" ]; then
-  echo -e "${RED}Error: Could not fetch Newt release url from GitHub.${NC}"
-  exit 1 # Exit if we can't get the latest version tag
+    echo -e "${RED}Error: Could not fetch Newt release url from GitHub.${NC}"
+    exit 1 # Exit if we can't get the latest version tag
 else
-  echo -e "New release url found: ${YELLOW}$RELEASE_URL${NC}"
-  # Construct the download URL using the found tag name and detected architecture
-  #DOWNLOAD_URL="https://github.com/fosrl/newt/releases/download/${LATEST_RELEASE_URL}/newt_linux_${NEWT_ARCH}"
-  DOWNLOAD_URL="${RELEASE_URL}"
-  # Check if the binary already exists and is the latest version (optional but good practice)
-  # This part is complex without knowing the installed version, so we'll just download and replace
-  # if [ -f "$NEWT_BIN_PATH" ] && "$NEWT_BIN_PATH" --version 2>/dev/null | grep -q "$LATEST_RELEASE_URL"; then
-  #   echo "Newt binary is already the latest version ($LATEST_RELEASE_URL). Skipping download."
-  # else
+    echo -e "New release url found: ${YELLOW}$RELEASE_URL${NC}"
+    # Construct the download URL using the found tag name and detected architecture
+    #DOWNLOAD_URL="https://github.com/fosrl/newt/releases/download/${LATEST_RELEASE_URL}/newt_linux_${NEWT_ARCH}"
+    DOWNLOAD_URL="${RELEASE_URL}"
+    # Check if the binary already exists and is the latest version (optional but good practice)
+    # This part is complex without knowing the installed version, so we'll just download and replace
+    # if [ -f "$NEWT_BIN_PATH" ] && "$NEWT_BIN_PATH" --version 2>/dev/null | grep -q "$LATEST_RELEASE_URL"; then
+    #   echo "Newt binary is already the latest version ($LATEST_RELEASE_URL). Skipping download."
+    # else
     echo -e "Attempting to download ${YELLOW}Newt binary for ${ARCH}${NC}..."
     if ! wget -q -O /tmp/newt_temp -L "$DOWNLOAD_URL"; then
       echo -e "${RED}Error: Failed to download Newt binary from $DOWNLOAD_URL.${NC}"
@@ -196,13 +196,12 @@ else
     mv /tmp/newt_temp "$NEWT_BIN_PATH"
     echo -e "${GREEN}Newt binary${NC} installed successfully."
     echo ""
-  # fi
 fi
 
 # --- End of Newt Binary Section ---
 
 # Initialize ExecStartValue
-ExecStartValue="/usr/local/bin/newt --id ${NEWT_ID} --secret ${NEWT_SECRET} --endpoint ${PANGOLIN_ENDPOINT}"
+ExecStartValue="$NEWT_BIN_PATH --id ${NEWT_ID} --secret ${NEWT_SECRET} --endpoint ${PANGOLIN_ENDPOINT}"
 
 # Conditionally add --accept-clients, --native or --docker-socket flags - ONLY for Upgrade Choice
 if [[ "${NEWT_CLIENTS}" =~ ^[Yy]$ ]]; then
