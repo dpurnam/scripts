@@ -11,7 +11,7 @@
 RED='\e[31m'
 GREEN='\e[32m'
 YELLOW='\e[93m'
-BOLD='\e[2m'
+BOLD='\e[1m'
 NC='\e[0m' # No Color
 
 # Define the target path for the systemd service file
@@ -39,7 +39,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
     local prompt="$1"
     local default="$2"
     local var_input
-    read -p "$(echo -e "${BOLD}$prompt${NC} (${YELLOW}$default${NC}): ")" var_input < /dev/tty
+    read -p "$(echo -e "${BOLD}$prompt${NC} or hit enter to use (${YELLOW}$default${NC}): ")" var_input < /dev/tty
     echo "${var_input:-$default}"
   }
   # Get the ExecStart line
@@ -87,7 +87,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
           echo -e "${YELLOW}Initiating Newt Service Re-installation...${NC}"
           #read -p "Provide Newt Client ID. or hit enter to use ($NEWT_ID): " NEWT_ID_input < /dev/tty
           #NEWT_ID="${NEWT_ID_input:-$NEWT_ID}"
-          NEWT_ID=$(prompt_with_default "Provide the Newt Client ID. or hit enter to use" "$NEWT_ID")
+          NEWT_ID=$(prompt_with_default "Provide the Newt Client ID." "$NEWT_ID")
           read -p "Provide Newt Client Secret. or hit enter to use ($NEWT_SECRET): " NEWT_SECRET_input < /dev/tty
           NEWT_SECRET="${NEWT_SECRET_input:-$NEWT_SECRET}"
           read -p "Provide Pangolin Endpoint. or hit enter to use ($PANGOLIN_ENDPOINT): " PANGOLIN_ENDPOINT_input < /dev/tty
