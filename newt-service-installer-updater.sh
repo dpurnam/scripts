@@ -12,6 +12,7 @@ RED='\e[31m'
 GREEN='\e[32m'
 YELLOW='\e[93m'
 BOLD='\e[1m'
+ITALIC='\e[3m'
 NC='\e[0m' # No Color
 
 # Define the target path for the systemd service file
@@ -39,7 +40,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
     local prompt="$1"
     local default="$2"
     local var_input
-    read -p "$(echo -e "${BOLD}$prompt${NC} or hit enter to use (${YELLOW}$default${NC}): ")" var_input < /dev/tty
+    read -p "$(echo -e "${BOLD}$prompt${NC} or hit enter to use (${GREEN}$default${NC}): ")" var_input < /dev/tty
     echo "${var_input:-$default}"
   }
   # Get the ExecStart line
@@ -64,19 +65,19 @@ if [[ -f "${SERVICE_FILE}" ]]; then
     DOCKER_SOCKET_PATH="$(echo "${exec_start_line}" | sed -n 's/.*--docker-socket \(\S\+\).*/\1/p')"
   fi
 
-  echo -e "Captured existing Newt info from ${GREEN}${SERVICE_FILE}${NC}:"
-  echo -e "  ID: ${YELLOW}${NEWT_ID}${NC}"
-  echo -e "  Secret: ${YELLOW}${NEWT_SECRET}${NC}"
-  echo -e "  Endpoint: ${YELLOW}${PANGOLIN_ENDPOINT}${NC}"
-  echo -e "  Accept Newt/OLM Clients Access: ${YELLOW}${NEWT_CLIENTS}${NC}"
-  echo -e "  Enable Newt Native Mode: ${YELLOW}${NEWT_NATIVE}${NC}"
-  echo -e "  Enable Docker Socket Access: ${YELLOW}${DOCKER_SOCKET}${NC}"
-  echo -e "  Docker Socket Path: ${YELLOW}${DOCKER_SOCKET_PATH}${NC}"
+  echo -e "Captured existing Newt info from ${ITALIC}${GREEN}${SERVICE_FILE}${NC}:"
+  echo -e "  ID: ${ITALIC}${YELLOW}${NEWT_ID}${NC}"
+  echo -e "  Secret: ${ITALIC}${YELLOW}${NEWT_SECRET}${NC}"
+  echo -e "  Endpoint: ${ITALIC}${YELLOW}${PANGOLIN_ENDPOINT}${NC}"
+  echo -e "  Accept Newt/OLM Clients Access: ${ITALIC}${YELLOW}${NEWT_CLIENTS}${NC}"
+  echo -e "  Enable Newt Native Mode: ${ITALIC}${YELLOW}${NEWT_NATIVE}${NC}"
+  echo -e "  Enable Docker Socket Access: ${ITALIC}${YELLOW}${DOCKER_SOCKET}${NC}"
+  echo -e "  Docker Socket Path: ${ITALIC}${YELLOW}${DOCKER_SOCKET_PATH}${NC}"
   echo ""
 
-  read -p "upgrade to latest version or Remove Newt? (u/R) " CONFIRM_UPGRADE_REMOVE < /dev/tty
+  read -p "$(echo -e "Upgrade to latest version or Remove Newt? ${YELLOW}${BOLD}(u/R)${NC} ")" CONFIRM_UPGRADE_REMOVE < /dev/tty
   if [[ ! "${CONFIRM_UPGRADE_REMOVE}" =~ ^[Rr]$ ]]; then
-      read -p "Proceed with ALL the existing values? (y/N) " CONFIRM_PROCEED < /dev/tty
+      read -p "$(echo -e "Proceed with ALL the existing values? ${YELLOW}${BOLD}(y/N)${NC} ")" CONFIRM_PROCEED < /dev/tty
       if [[ ! "${CONFIRM_PROCEED}" =~ ^[Yy]$ ]]; then
         read -p "Provide New values? (y/N) " CONFIRM_PROVIDE < /dev/tty
         if [[ ! "${CONFIRM_PROVIDE}" =~ ^[Yy]$ ]]; then
