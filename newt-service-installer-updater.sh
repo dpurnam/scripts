@@ -110,7 +110,7 @@ else
   read -p "Enter the Pangolin Endpoint (ex. https://pangolin.yourdomain.com): " PANGOLIN_ENDPOINT < /dev/tty
   read -p "Enable Docker Socket Access (y/N): " DOCKER_SOCKET < /dev/tty
   if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
-    read -p "Enter Docker Socket Path (ex. /var/run/docker.socket): " DOCKER_SOCKET_PATH < /dev/tty
+    read -p "Enter Docker Socket Path (ex. /var/run/docker.sock): " DOCKER_SOCKET_PATH < /dev/tty
   fi
   read -p "Enable Newt/OLM Clients Access? (y/N): " NEWT_CLIENTS < /dev/tty
   read -p "Enable Newt Native Mode (y/N): " NEWT_NATIVE < /dev/tty
