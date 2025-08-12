@@ -142,7 +142,7 @@ case "$ARCH" in
     ;;
 esac
 echo ""
-echo "Detected architecture: $ARCH ($NEWT_ARCH)"
+echo -e "Detected architecture: ${GREEN}$ARCH ($NEWT_ARCH)${NC}"
 
 # Get the latest release tag from GitHub API
 # Use -s for silent, -L for follow redirects
@@ -152,7 +152,7 @@ if [ -z "${RELEASE_URL}" ]; then
   echo -e "${RED}Error: Could not fetch Newt release url from GitHub.${NC}"
   exit 1 # Exit if we can't get the latest version tag
 else
-  echo -e "${GREEN}New release url found: $RELEASE_URL${NC}"
+  echo -e "New release url found: ${GREEN}$RELEASE_URL${NC}"
   # Construct the download URL using the found tag name and detected architecture
   #DOWNLOAD_URL="https://github.com/fosrl/newt/releases/download/${LATEST_RELEASE_URL}/newt_linux_${NEWT_ARCH}"
   DOWNLOAD_URL="${RELEASE_URL}"
