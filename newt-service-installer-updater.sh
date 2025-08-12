@@ -65,9 +65,9 @@ if [[ -f "${SERVICE_FILE}" ]]; then
     DOCKER_SOCKET_PATH="$(echo "${exec_start_line}" | sed -n 's/.*--docker-socket \(\S\+\).*/\1/p')"
   fi
 
-  echo -e "${BOLD}=================================================================${NC}"
+  echo -e "${BOLD}==================================================================${NC}"
   echo -e "${BOLD}Captured existing Newt info from ${ITALIC}${GREEN}${SERVICE_FILE}${NC}:"
-  echo -e "${BOLD}=================================================================${NC}"
+  echo -e "${BOLD}==================================================================${NC}"
   echo -e "  ID: ${ITALIC}${YELLOW}${NEWT_ID}${NC}"
   echo -e "  Secret: ${ITALIC}${YELLOW}${NEWT_SECRET}${NC}"
   echo -e "  Endpoint: ${ITALIC}${YELLOW}${PANGOLIN_ENDPOINT}${NC}"
@@ -75,7 +75,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   echo -e "  Enable Newt Native Mode: ${ITALIC}${YELLOW}${NEWT_NATIVE}${NC}"
   echo -e "  Enable Docker Socket Access: ${ITALIC}${YELLOW}${DOCKER_SOCKET}${NC}"
   echo -e "  Docker Socket Path: ${ITALIC}${YELLOW}${DOCKER_SOCKET_PATH}${NC}"
-  echo -e "${BOLD}=================================================================${NC}"
+  echo -e "${BOLD}==================================================================${NC}"
   echo ""
 
   read -p "$(echo -e "${BOLD}Upgrade${NC} to latest version or ${BOLD}Remove${NC} Newt? ${YELLOW}${BOLD}(u/R)${NC}: ")" CONFIRM_UPGRADE_REMOVE < /dev/tty
