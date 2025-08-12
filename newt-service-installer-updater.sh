@@ -65,11 +65,11 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   echo -e "  Docker Socket Path: ${YELLOW}${DOCKER_SOCKET_PATH}${NC}"
   echo ""
 
-  read -p "Do you want to upgrade to latest version or Remove Newt? (u/R) " CONFIRM_UPGRADE_REMOVE < /dev/tty
+  read -p "upgrade to latest version or Remove Newt? (u/R) " CONFIRM_UPGRADE_REMOVE < /dev/tty
   if [[ ! "${CONFIRM_UPGRADE_REMOVE}" =~ ^[Rr]$ ]]; then
-      read -p "Do you want to proceed with these existing values? (y/N) " CONFIRM_PROCEED < /dev/tty
+      read -p "Proceed with ALL the existing values? (y/N) " CONFIRM_PROCEED < /dev/tty
       if [[ ! "${CONFIRM_PROCEED}" =~ ^[Yy]$ ]]; then
-        read -p "Do you want to provide New values? (y/N) " CONFIRM_PROVIDE < /dev/tty
+        read -p "Provide New values? (y/N) " CONFIRM_PROVIDE < /dev/tty
         if [[ ! "${CONFIRM_PROVIDE}" =~ ^[Yy]$ ]]; then
           echo -e "${RED}Operation cancelled by user.${NC}"
           exit 0 # Exit cleanly if the user doesn't confirm
@@ -162,13 +162,13 @@ else
   #   echo "Newt binary is already the latest version ($LATEST_RELEASE_URL). Skipping download."
   # else
     echo -e "Attempting to download ${YELLOW}Newt binary for ${ARCH}${NC}..."
-    echo ""
     if ! wget -q -O /tmp/newt_temp -L "$DOWNLOAD_URL"; then
       echo -e "${RED}Error: Failed to download Newt binary from $DOWNLOAD_URL.${NC}"
       echo -e "${YELLOW}Please check the URL and your network connection.${NC}"
       exit 1
     fi
     echo -e "=== ${GREEN}Download Complete${NC} ==="
+    echo ""
     echo -e "Installing ${GREEN}Newt binary${NC} to ${GREEN}$NEWT_BIN_PATH${NC}"
     chmod +x /tmp/newt_temp
     mv /tmp/newt_temp "$NEWT_BIN_PATH"
