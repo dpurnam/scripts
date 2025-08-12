@@ -142,10 +142,8 @@ echo "Detected architecture: $ARCH ($NEWT_ARCH)"
 
 # Get the latest release tag from GitHub API
 # Use -s for silent, -L for follow redirects
-if [[ "${CONFIRM_UPGRADE_REMOVE}" =~ ^[Uu]$ ]]; then
-  LATEST_RELEASE_TAG=$(curl -sL "https://api.github.com/repos/fosrl/newt/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-  RELEASE_URL="https://github.com/fosrl/newt/releases/download/${LATEST_RELEASE_TAG}/newt_linux_${NEWT_ARCH}"
-fi
+LATEST_RELEASE_TAG=$(curl -sL "https://api.github.com/repos/fosrl/newt/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+RELEASE_URL="https://github.com/fosrl/newt/releases/download/${LATEST_RELEASE_TAG}/newt_linux_${NEWT_ARCH}"
 if [ -z "${RELEASE_URL}" ]; then
   echo -e "${RED}Error: Could not fetch Newt release url from GitHub.${NC}"
   exit 1 # Exit if we can't get the latest version tag
