@@ -164,10 +164,10 @@ else
       exit 1
     fi
 
-    echo -e "Installing ${GREEN}Newt binary to $NEWT_BIN_PATH${NC}"
+    echo -e "Installing ${GREEN}Newt binary${NC} to ${GREEN}$NEWT_BIN_PATH${NC}"
     chmod +x /tmp/newt_temp
     mv /tmp/newt_temp "$NEWT_BIN_PATH"
-    echo -e "${GREEN}Newt binary installed successfully.${NC}"
+    echo -e "${GREEN}Newt binary${NC} installed successfully."
     echo ""
   # fi
 fi
