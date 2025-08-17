@@ -2,6 +2,7 @@
 # This script may be used to invoke via system cron every month
 
 # Usage Instructions:
+# Create a local bash script file Simply execute the command below or create a local bash script to do so
 # curl -sL https://raw.githubusercontent.com/dpurnam/scripts/main/stalwart/cloudflare-tlsa-record-updater.sh | bash
 
 
