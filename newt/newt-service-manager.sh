@@ -2,7 +2,7 @@
 # Newt VPN Client Service Manager (Removal/Installer/Updater) Script for Debain - as a Service unit
 # https://docs.fossorial.io/Newt/install#binary
 # How to USE:
-# curl -sL https://raw.githubusercontent.com/dpurnam/scripts/main/newt/newt-service-manager.sh | sudo bash.sh | sudo bash
+# curl -sL https://raw.githubusercontent.com/dpurnam/scripts/main/newt/newt-service-manager.sh | sudo bash.sh
 #
 # Assumptions:
 # 1. A group named docker exists with Read/Write Permissions to the Docker Socket file
