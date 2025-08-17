@@ -1,5 +1,10 @@
 # This script updates Cloudflare TLSA records by fetching DANE information directly from a Stalwart Mail Server Docker container.
-# This script is invoked via system cron every month
+# This script may be used to invoke via system cron every month
+
+# Usage Instructions:
+# curl -sL https://raw.githubusercontent.com/dpurnam/scripts/main/stalwart/cloudflare-tlsa-record-updater.sh | bash
+
+
 # Important:
       # TLSA record must contain HOSTNAME of the Mail Server running Stalwart (in this ex. amdvps), regardless of number of email domains the mail server caters to.
       # If you've multiple Stalwart Mail servers, feel free to modify this script accordingly - changes would possibly include logic for additional variable HOSTNAME (for multiple hostnames) and appropriately updated DOMAIN_LIST
