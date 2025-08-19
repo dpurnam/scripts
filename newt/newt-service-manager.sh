@@ -101,18 +101,6 @@ if [[ -f "${SERVICE_FILE}" ]]; then
           read -p "$(echo -e "Enable ${BOLD}Docker Socket${NC} Access ${YELLOW}${BOLD}${ITALIC}(y/N)${NC}: ")" DOCKER_SOCKET < /dev/tty
           if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
               DOCKER_SOCKET_PATH=$(prompt_with_default "Provide Docker Socket Path." "$DOCKER_SOCKET_PATH")
-          else
-              if id -nG "newt" | grep -qw "docker"; then
-              # Remove newt user from docker group because user didn't want to use Docker Socket Access option
-                  gpasswd -d newt docker
-                  echo ""
-                  echo -e "${YELLOW}Removed Newt user from standard docker group!${NC}"
-                  echo ""
-              else
-                  echo ""
-                  echo -e "${YELLOW}Standar docker group not found.${NC} ${BOLD}${RED}REMEMBER${NC} to remove it from your ${BOLD}${YELLOW}custom docker${NC} group!"
-                  echo ""
-              fi                  
           fi
           
           read -p "$(echo -e "Enable ${BOLD}OLM Clients${NC} Access? ${YELLOW}${BOLD}${ITALIC}(y/N)${NC}: ")" NEWT_CLIENTS < /dev/tty
@@ -272,11 +260,21 @@ EOF2
     getent group newt >/dev/null || groupadd newt
     if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]] && getent group docker >/dev/null; then
         getent passwd newt >/dev/null || useradd -r -g newt -G docker -s /usr/sbin/nologin -c "Newt Service User" newt
+        echo -e "${GREEN}Newt${NC} user is (re)created and added to the standard ${GREEN}docker${NC} group!"
     elif [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]] && ! getent group docker >/dev/null; then
         getent passwd newt >/dev/null || useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
-        echo -e "Although standard ${RED}docker${NC} group not found, ${GREEN}Newt${NC} user is (re)created. ${BOLD}${RED}REMEMBER${NC} to add it to your ${BOLD}${YELLOW}custom docker${NC} group!"
+        echo -e "Although standard ${RED}docker${NC} group not found, ${GREEN}Newt${NC} Service User is (re)created. ${BOLD}${RED}REMEMBER${NC} to add it to your ${BOLD}${YELLOW}custom docker${NC} group!"
+    elif getent passwd newt >/dev/null && id -nG "newt" | grep -qw "docker"; then
+        gpasswd -d newt docker
+        echo -e "${GREEN}Removed existing Newt Service User from standard docker group!${NC}"
     else
-        getent passwd newt >/dev/null || useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
+        # This block handles all other cases, including when the user is created for the first time
+        if ! getent passwd newt >/dev/null; then
+          useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
+          echo -e "A regular ${GREEN}Newt${NC} Service User has been created!"
+        else
+          echo -e "A regular ${GREEN}Newt${NC} Service User already exists!"
+        fi
     fi
     mkdir -p "${NEWT_LIB_PATH}"
     chown newt:newt "${NEWT_LIB_PATH}"
