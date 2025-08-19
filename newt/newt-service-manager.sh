@@ -1,16 +1,15 @@
 #!/bin/bash
 # Newt VPN Client Service Manager (Removal/Installer/Updater) Script for Debain - as a Service unit
-# https://docs.fossorial.io/Newt/install#binary
+# REF: https://docs.fossorial.io/Newt
 
 # Usage Instructions:
 # Create a local bash script file Simply execute the command below or create a local bash script to do so
 # curl -sL https://raw.githubusercontent.com/dpurnam/scripts/main/newt/newt-service-manager.sh | sudo bash
 
 # Assumptions:
-# 1. A group named docker exists with Read/Write Permissions to the Docker Socket file
+# A group named docker exists with Read/Write Permissions to the Docker Socket file
 
 #set -euo pipefail
-
 # ANSI color codes
 RED='\e[31m'
 GREEN='\e[32m'
@@ -93,24 +92,29 @@ if [[ -f "${SERVICE_FILE}" ]]; then
         else
           echo ""
           echo -e "${YELLOW}Initiating Newt Service Re-installation...${NC}"
-          #read -p "Provide Newt Client ID. or hit enter to use ($NEWT_ID): " NEWT_ID_input < /dev/tty
-          #NEWT_ID="${NEWT_ID_input:-$NEWT_ID}"
+
+          # Capture default/user provided NEWT ID, SECRET and Pangolin Endpoint
           NEWT_ID=$(prompt_with_default "Provide Newt Client ID." "$NEWT_ID")
-          
-          #read -p "Provide Newt Client Secret. or hit enter to use ($NEWT_SECRET): " NEWT_SECRET_input < /dev/tty
-          #NEWT_SECRET="${NEWT_SECRET_input:-$NEWT_SECRET}"
           NEWT_SECRET=$(prompt_with_default "Provide Newt Client Secret." "$NEWT_SECRET")
-          
-          #read -p "Provide Pangolin Endpoint. or hit enter to use ($PANGOLIN_ENDPOINT): " PANGOLIN_ENDPOINT_input < /dev/tty
-          #PANGOLIN_ENDPOINT="${PANGOLIN_ENDPOINT_input:-$PANGOLIN_ENDPOINT}"
           PANGOLIN_ENDPOINT=$(prompt_with_default "Provide Pangolin Endpoint." "$PANGOLIN_ENDPOINT")
-          
+
           read -p "$(echo -e "Enable ${BOLD}Docker Socket${NC} Access ${YELLOW}${BOLD}${ITALIC}(y/N)${NC}: ")" DOCKER_SOCKET < /dev/tty
           if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
-            #read -p "Provide Docker Socket Path. or hit enter to use ($DOCKER_SOCKET_PATH): " DOCKER_SOCKET_PATH_input < /dev/tty
-            #DOCKER_SOCKET_PATH="${DOCKER_SOCKET_PATH_input:-$DOCKER_SOCKET_PATH}"
-            DOCKER_SOCKET_PATH=$(prompt_with_default "Provide Docker Socket Path." "$DOCKER_SOCKET_PATH")
+              DOCKER_SOCKET_PATH=$(prompt_with_default "Provide Docker Socket Path." "$DOCKER_SOCKET_PATH")
+          else
+              if id -nG "newt" | grep -qw "docker"; then
+              # Remove newt user from docker group because user didn't want to use Docker Socket Access option
+                  gpasswd -d newt docker
+                  echo ""
+                  echo -e "${YELLOW}Removed Newt user from standard docker group!${NC}"
+                  echo ""
+              else
+                  echo ""
+                  echo -e "${YELLOW}Standar docker group not found.${NC} ${BOLD}${RED}REMEMBER${NC} to remove it from your ${BOLD}${YELLOW}custom docker${NC} group!"
+                  echo ""
+              fi                  
           fi
+          
           read -p "$(echo -e "Enable ${BOLD}OLM Clients${NC} Access? ${YELLOW}${BOLD}${ITALIC}(y/N)${NC}: ")" NEWT_CLIENTS < /dev/tty
           read -p "$(echo -e "Enable ${BOLD}Native${NC} Mode ${YELLOW}${BOLD}${ITALIC}(y/N)${NC}: ")" NEWT_NATIVE < /dev/tty
         fi
@@ -270,7 +274,7 @@ EOF2
         getent passwd newt >/dev/null || useradd -r -g newt -G docker -s /usr/sbin/nologin -c "Newt Service User" newt
     elif [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]] && ! getent group docker >/dev/null; then
         getent passwd newt >/dev/null || useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
-        echo -e "Although standard ${RED}docker${NC} group not found, ${GREEN}Newt${NC} user is (re)created. ${RED}REMEMBER${NC} to add it to your ${YELLOW}custom docker${NC} group!"
+        echo -e "Although standard ${RED}docker${NC} group not found, ${GREEN}Newt${NC} user is (re)created. ${BOLD}${RED}REMEMBER${NC} to add it to your ${BOLD}${YELLOW}custom docker${NC} group!"
     else
         getent passwd newt >/dev/null || useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
     fi
