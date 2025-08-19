@@ -122,7 +122,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
       getent group newt >/dev/null && groupdel newt
       rm -rf "${NEWT_LIB_PATH}"
       rm "$NEWT_BIN_PATH"
-      echo -e "${BOLD}${YELLOW}Removed Newt user, group and service. Goodbye!${NC}"
+      echo -e "${BOLD}${YELLOW}Removed Newt Service user, group and service. Goodbye!${NC}"
       exit 0
   fi
   echo ""
@@ -261,7 +261,7 @@ ReadWritePaths=${NEWT_LIB_PATH}
 [Install]
 WantedBy=multi-user.target
 EOF2
-    # Create the directory for the newt user and group if they don't exist
+    # Create the directory for the newt Service User and group if they don't exist
     getent group newt >/dev/null || groupadd newt
     if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]] && getent group docker >/dev/null; then
         getent passwd newt >/dev/null || useradd -r -g newt -G docker -s /usr/sbin/nologin -c "Newt Service User" newt
