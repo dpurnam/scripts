@@ -100,7 +100,12 @@ if [[ -f "${SERVICE_FILE}" ]]; then
 
           read -p "$(echo -e "Enable ${BOLD}Docker Socket${NC} Access ${YELLOW}${BOLD}${ITALIC}(y/N)${NC}: ")" DOCKER_SOCKET < /dev/tty
           if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
-              DOCKER_SOCKET_PATH=$(prompt_with_default "Provide Docker Socket Path." "$DOCKER_SOCKET_PATH")
+              if [[ -z "${DOCKER_SOCKET_PATH}" ]]; then
+                  DOCKER_SOCKET_PATH=$(prompt_with_default "Provide Docker Socket Path." "/var/run/docker.sock")
+              else
+                  DOCKER_SOCKET_PATH=$(prompt_with_default "Provide Docker Socket Path." "$DOCKER_SOCKET_PATH")
+              fi
+              #DOCKER_SOCKET_PATH=$(prompt_with_default "Provide Docker Socket Path." "$DOCKER_SOCKET_PATH")
           fi
           
           read -p "$(echo -e "Enable ${BOLD}OLM Clients${NC} Access? ${YELLOW}${BOLD}${ITALIC}(y/N)${NC}: ")" NEWT_CLIENTS < /dev/tty
