@@ -80,16 +80,8 @@ curl -sSL "$REPO_URL/src/wmp" -o "$BIN_DIR/wmp" || { echo "Failed to download wm
 curl -sSL "$REPO_URL/src/wmp-run" -o "$BIN_DIR/wmp-run" || { echo "Failed to download wmp-run"; exit 1; }
 chmod 744 "$BIN_DIR/wmp" "$BIN_DIR/wmp-run"
 
-# Patch Service file (comments first, then ExecStart)
-sed -i '1,2{/^# timeout /d; /^# threshold /d}' "$SYSTEMD_DIR/wmp.service"
-sed -i "1i# timeout $timeout (Do not Modify this auto-generated line!)" "$SYSTEMD_DIR/wmp.service"
-sed -i "2i# threshold $BATTERY_THRESHOLD (Do not Modify this auto-generated line!)" "$SYSTEMD_DIR/wmp.service"
-sed -i "s|^ExecStart=.*|ExecStart=$BIN_DIR/wmp-run $timeout|" "$SYSTEMD_DIR/wmp.service"
-
-# Patch Timer file similarly (comments only)
-sed -i '1,2{/^# timeout /d; /^# threshold /d}' "$SYSTEMD_DIR/wmp.timer"
-sed -i "1i# timeout $timeout (Do not Modify this auto-generated line!)" "$SYSTEMD_DIR/wmp.timer"
-sed -i "2i# threshold $BATTERY_THRESHOLD (Do not Modify this auto-generated line!)" "$SYSTEMD_DIR/wmp.timer"
+# Patch Service file's ExecStart to pass args
+sed -i "s|^ExecStart=.*|ExecStart=$BIN_DIR/wmp-run --threshold $BATTERY_THRESHOLD --timeout $timeout|" "$SYSTEMD_DIR/wmp.service"
 
 systemctl daemon-reload
 systemctl enable wmp.timer
