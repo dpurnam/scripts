@@ -2,8 +2,16 @@
 # WakeMyPotata emergency RAID/system safe shutdown
 # https://github.com/dpurnam/scripts/tree/main/WakeMyPotata
 # Inspired by - https://github.com/pablogila/WakeMyPotato
+# Usage:
+# curl -sSL https://raw.githubusercontent.com/dpurnam/scripts/main/WakeMyPotata/install.sh | sudo bash
 
-echo "  Welcome to the WakeMyPotata installer!"
+set -e
+
+REPO_URL="https://raw.githubusercontent.com/dpurnam/scripts/main/WakeMyPotata"
+BIN_DIR="/usr/local/sbin"
+SYSTEMD_DIR="/etc/systemd/system"
+
+echo "  Welcome to the WakeMyPotato installer!"
 echo "  Enter seconds to wake up after a blackout,"
 echo "  leave empty to use the default 600 seconds:"
 read -p "  > " timeout
@@ -35,20 +43,27 @@ fi
 # Warn user if no battery (informational, does not block install)
 BAT_PATH=$(upower -e 2>/dev/null | grep -m1 BAT || true)
 if [ -z "$BAT_PATH" ]; then
-    echo "  Warning: No battery detected. WakeMyPotata will run in AC-only mode."
+    echo "  Warning: No battery detected. WakeMyPotato will run in AC-only mode."
 fi
 
-# Copy all scripts and units
-cp src/wmp.timer src/wmp.service /etc/systemd/system/
-chmod 644 /etc/systemd/system/wmp.timer /etc/systemd/system/wmp.service
-cp src/wmp src/wmp-run /usr/local/sbin/
-chmod 744 /usr/local/sbin/wmp /usr/local/sbin/wmp-run
+echo "  Downloading and installing WakeMyPotato files..."
 
-sed -i "s|^ExecStart=.*|ExecStart=/usr/local/sbin/wmp-run $timeout|" /etc/systemd/system/wmp.service
+# Download and install systemd units
+curl -sSL "$REPO_URL/src/wmp.timer" -o "$SYSTEMD_DIR/wmp.timer"
+curl -sSL "$REPO_URL/src/wmp.service" -o "$SYSTEMD_DIR/wmp.service"
+chmod 644 "$SYSTEMD_DIR/wmp.timer" "$SYSTEMD_DIR/wmp.service"
+
+# Download and install main scripts
+curl -sSL "$REPO_URL/src/wmp" -o "$BIN_DIR/wmp"
+curl -sSL "$REPO_URL/src/wmp-run" -o "$BIN_DIR/wmp-run"
+chmod 744 "$BIN_DIR/wmp" "$BIN_DIR/wmp-run"
+
+# Patch ExecStart for timeout
+sed -i "s|^ExecStart=.*|ExecStart=$BIN_DIR/wmp-run $timeout|" "$SYSTEMD_DIR/wmp.service"
 
 systemctl daemon-reload
 systemctl enable wmp.timer
 systemctl start wmp.timer
 
-echo "  WakeMyPotata installed successfully!"
+echo "  WakeMyPotato installed successfully!"
 echo "  Use 'sudo wmp help' for info on user commands."
