@@ -1,30 +1,35 @@
 #!/bin/bash
 # WakeMyPotata emergency RAID/system safe shutdown
 # For battery-powered devices only
-# https://github.com/dpurnam/scripts/tree/main/WakeMyPotata
 
 version="v2.1.3"
 SERVICE_FILE="/etc/systemd/system/wmp.service"
-
-get_threshold() {
-    awk -F' ' '/^# threshold / {print $3}' "$SERVICE_FILE"
-}
-
-set_threshold() {
-    local new_threshold="$1"
-    # Remove old threshold line, add new
-    sed -i "/^# threshold /d" "$SERVICE_FILE"
-    sed -i "/^ExecStart=/a # threshold $new_threshold (Do not Modify this auto-generated line!)" "$SERVICE_FILE"
-    systemctl daemon-reload
-}
+TIMER_FILE="/etc/systemd/system/wmp.timer"
 
 get_timeout() {
-    awk -F' ' '/^ExecStart=/{split($2,x," "); print x[2]}' "$SERVICE_FILE"
+    sed -n '1s/^# timeout \([0-9]\+\).*$/\1/p' "$SERVICE_FILE"
+}
+
+get_threshold() {
+    sed -n '2s/^# threshold \([0-9]\+\).*$/\1/p' "$SERVICE_FILE"
 }
 
 set_timeout() {
     local new_timeout="$1"
+    for file in "$SERVICE_FILE" "$TIMER_FILE"; do
+        sed -i '1{/^# timeout /d}' "$file"
+        sed -i "1i# timeout $new_timeout (Do not Modify this auto-generated line!)" "$file"
+    done
     sed -i "s|^ExecStart=.*|ExecStart=/usr/local/sbin/wmp-run $new_timeout|" "$SERVICE_FILE"
+    systemctl daemon-reload
+}
+
+set_threshold() {
+    local new_threshold="$1"
+    for file in "$SERVICE_FILE" "$TIMER_FILE"; do
+        sed -i '2{/^# threshold /d}' "$file"
+        sed -i "2i# threshold $new_threshold (Do not Modify this auto-generated line!)" "$file"
+    done
     systemctl daemon-reload
 }
 
@@ -54,8 +59,10 @@ elif [[ "$1" == "version" ]]; then
 
 elif [[ "$1" == "status" ]]; then
     echo "WakeMyPotata status:"
-    tail -n 1 "$SERVICE_FILE"
+    systemctl status wmp.service
     systemctl status wmp.timer
+    echo "Timeout: $(get_timeout) seconds"
+    echo "Threshold: $(get_threshold)%"
 
 elif [[ "$1" == "log" ]]; then
     sudo journalctl -u wmp -p warning -r
