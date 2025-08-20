@@ -38,16 +38,13 @@ if [[ ! "$timeout" =~ ^[0-9]+$ ]]; then
 fi
 
 # Threshold
-# Use default if empty
 if [[ -z "$threshold" ]]; then
     threshold=10
 fi
-# Validate input: integer between 10 and 50
 if [[ ! "$threshold" =~ ^[0-9]+$ ]] || (( threshold < 10 || threshold > 50 )); then
     echo -e "${BOLD}${RED}Invalid input, please enter a positive integer between 10 and 50! Aborting...${NC}"
     exit 1
 fi
-# Set the variable
 BATTERY_THRESHOLD=$threshold
 
 # Check for upower and install if missing
@@ -76,20 +73,23 @@ fi
 
 echo -e "${YELLOW}Downloading and installing WakeMyPotata files...${NC}"
 
-# Download and install systemd units
-curl -sSL "$REPO_URL/src/wmp.timer" -o "$SYSTEMD_DIR/wmp.timer"
-curl -sSL "$REPO_URL/src/wmp.service" -o "$SYSTEMD_DIR/wmp.service"
+# Download and install systemd units, with error handling
+curl -sSL "$REPO_URL/src/wmp.timer" -o "$SYSTEMD_DIR/wmp.timer" || { echo "Failed to download wmp.timer"; exit 1; }
+curl -sSL "$REPO_URL/src/wmp.service" -o "$SYSTEMD_DIR/wmp.service" || { echo "Failed to download wmp.service"; exit 1; }
 chmod 644 "$SYSTEMD_DIR/wmp.timer" "$SYSTEMD_DIR/wmp.service"
 
 # Download and install main scripts
-curl -sSL "$REPO_URL/src/wmp" -o "$BIN_DIR/wmp"
-curl -sSL "$REPO_URL/src/wmp-run" -o "$BIN_DIR/wmp-run"
+curl -sSL "$REPO_URL/src/wmp" -o "$BIN_DIR/wmp" || { echo "Failed to download wmp"; exit 1; }
+curl -sSL "$REPO_URL/src/wmp-run" -o "$BIN_DIR/wmp-run" || { echo "Failed to download wmp-run"; exit 1; }
 chmod 744 "$BIN_DIR/wmp" "$BIN_DIR/wmp-run"
 
 # Patch ExecStart for timeout
 sed -i "s|^ExecStart=.*|ExecStart=$BIN_DIR/wmp-run $timeout|" "$SYSTEMD_DIR/wmp.service"
 # Add threshold comment after ExecStart
-sed -i "/^ExecStart=/a # threshold $BATTERY_THRESHOLD (Do not Modify this auto-generated line!)" "$SYSTEMD_DIR/wmp.service"
+sed -i "/^Description=/a # threshold $BATTERY_THRESHOLD (Do not Modify this auto-generated line!)\n# timeout $timeout (Do not Modify this auto-generated line!)" "$SYSTEMD_DIR/wmp.service"
+
+# Also patch timer file with threshold and timeout comments
+sed -i "/^Description=/a # threshold $BATTERY_THRESHOLD (Do not Modify this auto-generated line!)\n# timeout $timeout (Do not Modify this auto-generated line!)" "$SYSTEMD_DIR/wmp.timer"
 
 systemctl daemon-reload
 systemctl enable wmp.timer
