@@ -40,7 +40,7 @@ if [[ "$1" == "help" ]]; then
     echo "  sudo wmp threshold set <percent>                         Set battery level threshold in % (10-50)"
     echo "  sudo wmp timeout                                         Show timeout value (seconds)"
     echo "  sudo wmp timeout set <seconds>                           Set new timeout value"
-    echo "  sudo wmp run --threshold <percent> --timeout <seconds>   Run a manual check"
+    echo "  sudo wmp run --timeout <seconds>                         Run a manual check (timeout is required)"
     echo "  sudo wmp stop                                            Stop the service"
     echo "  sudo wmp start                                           Start the service"
     echo "  sudo wmp uninstall                                       Uninstall the service"
@@ -106,20 +106,9 @@ elif [[ "$1" == "timeout" && "$2" == "set" && -n "$3" ]]; then
 
 elif [[ "$1" == "run" ]]; then
     shift
-    # Require both --threshold and --timeout
-    local_threshold=""
     local_timeout=""
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --threshold)
-                if [[ -n "$2" ]] && [[ "$2" =~ ^[0-9]+$ ]] && (( $2 >= 10 && $2 <= 50 )); then
-                    local_threshold="$2"
-                    shift 2
-                else
-                    echo "Invalid or missing --threshold value. Must be between 10 and 50."
-                    exit 1
-                fi
-                ;;
             --timeout)
                 if [[ -n "$2" ]] && [[ "$2" =~ ^[0-9]+$ ]] && (( $2 >= 1 )); then
                     local_timeout="$2"
@@ -131,16 +120,16 @@ elif [[ "$1" == "run" ]]; then
                 ;;
             *)
                 echo "Unknown argument: $1"
-                echo "Usage: sudo wmp run --threshold <percent> --timeout <seconds>"
+                echo "Usage: sudo wmp run --timeout <seconds>"
                 exit 1
                 ;;
         esac
     done
-    if [[ -z "$local_threshold" || -z "$local_timeout" ]]; then
-        echo "Usage: sudo wmp run --threshold <percent> --timeout <seconds>"
+    if [[ -z "$local_timeout" ]]; then
+        echo "Missing required argument: --timeout <seconds>"
         exit 1
     fi
-    /usr/local/sbin/wmp-run --threshold "$local_threshold" --timeout "$local_timeout"
+    /usr/local/sbin/wmp-run --timeout "$local_timeout"
 
 elif [[ "$1" == "stop" ]]; then
     systemctl stop wmp.timer
