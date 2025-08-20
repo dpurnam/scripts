@@ -4,32 +4,26 @@
 
 version="v2.1.3"
 SERVICE_FILE="/etc/systemd/system/wmp.service"
-TIMER_FILE="/etc/systemd/system/wmp.timer"
 
 get_timeout() {
-    sed -n '1s/^# timeout \([0-9]\+\).*$/\1/p' "$SERVICE_FILE"
+    awk -F'--timeout ' '/^ExecStart=/{split($2,x," "); print x[1]}' "$SERVICE_FILE"
 }
 
 get_threshold() {
-    sed -n '2s/^# threshold \([0-9]\+\).*$/\1/p' "$SERVICE_FILE"
+    awk -F'--threshold ' '/^ExecStart=/{split($2,x," "); print x[1]}' "$SERVICE_FILE"
 }
 
 set_timeout() {
     local new_timeout="$1"
-    for file in "$SERVICE_FILE" "$TIMER_FILE"; do
-        sed -i '1{/^# timeout /d}' "$file"
-        sed -i "1i# timeout $new_timeout (Do not Modify this auto-generated line!)" "$file"
-    done
-    sed -i "s|^ExecStart=.*|ExecStart=/usr/local/sbin/wmp-run $new_timeout|" "$SERVICE_FILE"
+    local current_threshold="$(get_threshold)"
+    sed -i "s|^ExecStart=.*|ExecStart=/usr/local/sbin/wmp-run --threshold $current_threshold --timeout $new_timeout|" "$SERVICE_FILE"
     systemctl daemon-reload
 }
 
 set_threshold() {
     local new_threshold="$1"
-    for file in "$SERVICE_FILE" "$TIMER_FILE"; do
-        sed -i '2{/^# threshold /d}' "$file"
-        sed -i "2i# threshold $new_threshold (Do not Modify this auto-generated line!)" "$file"
-    done
+    local current_timeout="$(get_timeout)"
+    sed -i "s|^ExecStart=.*|ExecStart=/usr/local/sbin/wmp-run --threshold $new_threshold --timeout $current_timeout|" "$SERVICE_FILE"
     systemctl daemon-reload
 }
 
@@ -46,7 +40,7 @@ if [[ "$1" == "help" ]]; then
     echo "  sudo wmp threshold set <percent>     Set battery level threshold in % (10-50)"
     echo "  sudo wmp timeout                     Show timeout value (seconds)"
     echo "  sudo wmp timeout set <seconds>       Set new timeout value"
-    echo "  sudo wmp run <seconds>               Run a manual check"
+    echo "  sudo wmp run --threshold <percent> --timeout <seconds>  Run a manual check"
     echo "  sudo wmp stop                        Stop the service"
     echo "  sudo wmp start                       Start the service"
     echo "  sudo wmp uninstall                   Uninstall the service"
@@ -118,12 +112,9 @@ elif [[ "$1" == "set" && -n "$2" ]]; then
     set_timeout "$2"
     echo "Configuration updated successfully!"
 
-elif [[ "$1" == "run" && -n "$2" ]]; then
-    if [[ ! "$2" =~ ^[0-9]+$ ]] || (( $2 < 1 )); then
-        echo "Invalid input, please enter a positive integer! Aborting..."
-        exit 1
-    fi
-    /usr/local/sbin/wmp-run "$2"
+elif [[ "$1" == "run" ]]; then
+    shift
+    /usr/local/sbin/wmp-run "$@"
 
 elif [[ "$1" == "stop" ]]; then
     systemctl stop wmp.timer
