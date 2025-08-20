@@ -18,10 +18,10 @@ ITALIC='\e[3m'
 NC='\e[0m' # No Color
 
 echo -e "${BOLD}======================================${NC}"
-echo -e "${GREEN}Welcome to the ${BOLD}WakeMyPotata installer!${NC}"
+echo -e "${GREEN}Welcome to the ${BOLD}WakeMyPotata${NC} ${GREEN}installer!${NC}"
 echo -e "${BOLD}======================================${NC}"
 echo ""
-echo "${YELLOW}Enter amount of time (in seconds) to wake up the device after a blackout or leave empty to use the default 600 seconds!${NC}"
+echo -e "${YELLOW}Enter amount of time (in seconds) to wake up the device ${BOLD}after a blackout${NC} ${YELLOW}or leave empty to use the default 600 seconds!${NC}"
 read -p "  ==> " timeout < /dev/tty
 echo ""
 
