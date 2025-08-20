@@ -1,6 +1,7 @@
 [Unit]
 Description=WakeMyPotata: Emergency RAID/system safe shutdown (battery-only)
 # threshold 10 (Do not Modify this auto-generated line!)
+# timeout 600 (Do not Modify this auto-generated line!)
 
 [Service]
 Type=oneshot
