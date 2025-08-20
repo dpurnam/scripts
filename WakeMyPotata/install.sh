@@ -2,8 +2,6 @@
 # WakeMyPotata emergency RAID/system safe shutdown
 # https://github.com/dpurnam/scripts/tree/main/WakeMyPotata
 # Inspired by - https://github.com/pablogila/WakeMyPotato
-# Usage:
-# curl -sSL https://raw.githubusercontent.com/dpurnam/scripts/main/WakeMyPotata/install.sh | sudo bash
 
 set -e
 
@@ -11,7 +9,7 @@ REPO_URL="https://raw.githubusercontent.com/dpurnam/scripts/main/WakeMyPotata"
 BIN_DIR="/usr/local/sbin"
 SYSTEMD_DIR="/etc/systemd/system"
 
-echo "  Welcome to the WakeMyPotato installer!"
+echo "  Welcome to the WakeMyPotata installer!"
 echo "  Enter seconds to wake up after a blackout,"
 echo "  leave empty to use the default 600 seconds:"
 read -p "  > " timeout
@@ -43,10 +41,10 @@ fi
 # Warn user if no battery (informational, does not block install)
 BAT_PATH=$(upower -e 2>/dev/null | grep -m1 BAT || true)
 if [ -z "$BAT_PATH" ]; then
-    echo "  Warning: No battery detected. WakeMyPotato will run in AC-only mode."
+    echo "  Warning: No battery detected. WakeMyPotata will run in AC-only mode."
 fi
 
-echo "  Downloading and installing WakeMyPotato files..."
+echo "  Downloading and installing WakeMyPotata files..."
 
 # Download and install systemd units
 curl -sSL "$REPO_URL/src/wmp.timer" -o "$SYSTEMD_DIR/wmp.timer"
@@ -65,5 +63,5 @@ systemctl daemon-reload
 systemctl enable wmp.timer
 systemctl start wmp.timer
 
-echo "  WakeMyPotato installed successfully!"
+echo "  WakeMyPotata installed successfully!"
 echo "  Use 'sudo wmp help' for info on user commands."
