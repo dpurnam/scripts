@@ -1,7 +1,7 @@
 #!/bin/bash
 # WakeMyPotata emergency RAID/system safe shutdown
+# Only works with devices that have a battery.
 # https://github.com/dpurnam/scripts/tree/main/WakeMyPotata
-# Inspired by - https://github.com/pablogila/WakeMyPotato
 
 set -euo pipefail
 
@@ -26,69 +26,58 @@ if ! command -v upower &>/dev/null; then
         sudo pacman -Sy upower
     else
         log "Could not detect package manager. Please install upower manually."
+        exit 1
     fi
 fi
 
 # Detect if battery exists
 BAT_PATH=$(upower -e 2>/dev/null | grep -m1 BAT || true)
-if [ -n "$BAT_PATH" ]; then
-    # Battery present, get % level
-    battery_percentage=$(upower -i "$BAT_PATH" 2>/dev/null | awk '/percentage:/ {gsub(/%/, "", $2); print $2}')
-    if [ -z "$battery_percentage" ]; then
-        battery_percentage=100
-        log "Could not determine battery level, assuming 100%."
-    fi
-else
-    battery_percentage=""
+if [ -z "$BAT_PATH" ]; then
+    log "No battery detected. WakeMyPotata only works with devices that have a battery. Exiting."
+    exit 1
+fi
+
+# Battery present, get % level
+battery_percentage=$(upower -i "$BAT_PATH" 2>/dev/null | awk '/percentage:/ {gsub(/%/, "", $2); print $2}')
+if [ -z "$battery_percentage" ]; then
+    battery_percentage=100
+    log "Could not determine battery level, assuming 100%."
 fi
 
 # Check AC power status (0=on AC, nonzero=not on AC)
 ac_status=$(on_ac_power; echo $?)
 
-if [ -n "$battery_percentage" ]; then
-    # Battery present
-    if [ "$ac_status" -ne 0 ]; then
-        if [ "$battery_percentage" -le "$BATTERY_THRESHOLD" ]; then
-            wall_msg="WakeMyPotata: Emergency shutdown! AC lost, battery at ${battery_percentage}% (≤ ${BATTERY_THRESHOLD}%).\nService will try to restart in $TIMEOUT seconds."
-            echo -e "$wall_msg" | wall
-            log "$wall_msg"
-            # RAID safe shutdown
-            mdadm --detail --scan | while read -r line; do
-                raid_dev=$(echo "$line" | awk '{print $2}' | cut -d'=' -f1 | tr -d '[]')
-                if ! mdadm --detail "$raid_dev" &>/dev/null; then continue; fi
-                disks=$(mdadm --detail "$raid_dev" 2>/dev/null | awk '/active sync/ && $0 !~ /spare/ {print $NF}' | sort -u)
-                mount_point=$(findmnt -n -o TARGET "$raid_dev" 2>/dev/null)
-                if [ -n "$mount_point" ]; then
-                    log "Killing processes on $mount_point"
-                    fuser -km "$mount_point" && log "Processes killed on $mount_point"
-                    log "Unmounting $mount_point"
-                    umount -f "$mount_point" || log "Failed to force unmount $mount_point"
-                fi
-                log "Stopping RAID device $raid_dev"
-                mdadm --stop "$raid_dev" || log "Failed to stop $raid_dev"
-                for disk in $disks; do
-                    log "Powering off disk $disk"
-                    udisksctl power-off -b "$disk" || log "Failed to power-off $disk"
-                done
-            done
-            log "Shutting down NOW! Scheduled boot in $TIMEOUT s"
-            rtcwake -m off -s "$TIMEOUT"
-        else
-            log "AC lost, but battery > $BATTERY_THRESHOLD% ($battery_percentage%). No emergency shutdown."
-            # Stay alive—schedule a noop rtcwake, so device wakes if AC returns
-            rtcwake -m no -s "$TIMEOUT"
-        fi
-    else
-        log "AC power OK. No action required."
-    fi
-else
-    # No battery detected
-    if [ "$ac_status" -ne 0 ]; then
-        wall_msg="WakeMyPotata: AC lost, no battery detected. Scheduling wake in $TIMEOUT seconds."
+if [ "$ac_status" -ne 0 ]; then
+    if [ "$battery_percentage" -le "$BATTERY_THRESHOLD" ]; then
+        wall_msg="WakeMyPotata: Emergency shutdown! AC lost, battery at ${battery_percentage}% (≤ ${BATTERY_THRESHOLD}%).\nService will try to restart in $TIMEOUT seconds."
         echo -e "$wall_msg" | wall
         log "$wall_msg"
-        rtcwake -m no -s "$TIMEOUT"
+        # RAID safe shutdown
+        mdadm --detail --scan | while read -r line; do
+            raid_dev=$(echo "$line" | awk '{print $2}' | cut -d'=' -f1 | tr -d '[]')
+            if ! mdadm --detail "$raid_dev" &>/dev/null; then continue; fi
+            disks=$(mdadm --detail "$raid_dev" 2>/dev/null | awk '/active sync/ && $0 !~ /spare/ {print $NF}' | sort -u)
+            mount_point=$(findmnt -n -o TARGET "$raid_dev" 2>/dev/null)
+            if [ -n "$mount_point" ]; then
+                log "Killing processes on $mount_point"
+                fuser -km "$mount_point" && log "Processes killed on $mount_point"
+                log "Unmounting $mount_point"
+                umount -f "$mount_point" || log "Failed to force unmount $mount_point"
+            fi
+            log "Stopping RAID device $raid_dev"
+            mdadm --stop "$raid_dev" || log "Failed to stop $raid_dev"
+            for disk in $disks; do
+                log "Powering off disk $disk"
+                udisksctl power-off -b "$disk" || log "Failed to power-off $disk"
+            done
+        done
+        log "Shutting down NOW! Scheduled boot in $TIMEOUT s"
+        rtcwake -m off -s "$TIMEOUT"
     else
-        log "AC power OK and no battery detected. No action required."
+        log "AC lost, but battery > $BATTERY_THRESHOLD% ($battery_percentage%). No emergency shutdown."
+        # Stay alive—schedule a noop rtcwake, so device wakes if AC returns
+        rtcwake -m no -s "$TIMEOUT"
     fi
+else
+    log "AC power OK. No action required."
 fi
