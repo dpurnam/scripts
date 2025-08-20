@@ -9,16 +9,18 @@ if [ "$1" = "help" ]; then
     echo ""
     echo "  WakeMyPotata user commands:"
     echo ""
-    echo "  sudo wmp help           Show this help message"
-    echo "  sudo wmp version        Print the software version"
-    echo "  sudo wmp status         Check the service status"
-    echo "  sudo wmp log            View warning logs"
-    echo "  sudo wmp battery        Show battery status"
-    echo "  sudo wmp set <seconds>  Set new configuration"
-    echo "  sudo wmp run <seconds>  Run a manual check"
-    echo "  sudo wmp stop           Stop the service"
-    echo "  sudo wmp start          Start the service"
-    echo "  sudo wmp uninstall      Uninstall the service"
+    echo "  sudo wmp help                       Show this help message"
+    echo "  sudo wmp version                    Print the software version"
+    echo "  sudo wmp status                     Check the service status"
+    echo "  sudo wmp log                        View warning logs"
+    echo "  sudo wmp battery                    Show battery status"
+    echo "  sudo wmp threshold                  Show battery level threshold in %"
+    echo "  sudo wmp threshold set <seconds>    Show battery level threshold in %"
+    echo "  sudo wmp set <seconds>              Set new configuration"
+    echo "  sudo wmp run <seconds>              Run a manual check"
+    echo "  sudo wmp stop                       Stop the service"
+    echo "  sudo wmp start                      Start the service"
+    echo "  sudo wmp uninstall                  Uninstall the service"
     echo ""
     echo "  NOTE: WakeMyPotata only works on devices with a battery."
     echo ""
@@ -45,7 +47,17 @@ elif [ "$1" = "battery" ]; then
     else
         echo "No battery detected on this device. WakeMyPotata will not run."
     fi
-
+    if [ "$1" = "threshold" ]; then
+        echo "$BATTERY_THRESHOLD"
+    elif [ "$1" = "threshold set" ]; then
+            if [[ ! "$2" =~ ^[0-9]+$ ]]; then
+                echo "  Invalid input, please enter a positive integer (10 - 20)! Aborting..."
+                exit 1
+            else
+                BATTERY_THRESHOLD="$2"
+                echo "  Threshold updated successfully!"
+            fi 
+    fi 
 elif [ "$1" = "set" ]; then
     if [[ ! "$2" =~ ^[0-9]+$ ]]; then
         echo "  Invalid input, please enter a positive integer! Aborting..."
