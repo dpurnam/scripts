@@ -5,20 +5,22 @@
 
 set -euo pipefail
 
-# Default timeout
-TIMEOUT="${1:-600}"
-
-# Get service file path (hardcoded or via $0 if symlinked)
 SERVICE_FILE="/etc/systemd/system/wmp.service"
 
 # Extract threshold value from comment in service file
 BATTERY_THRESHOLD=$(awk -F' ' '/^# threshold / {print $3}' "$SERVICE_FILE")
-if [[ -z "$BATTERY_THRESHOLD" ]]; then
+if [[ -z "$BATTERY_THRESHOLD" ]] || (( BATTERY_THRESHOLD < 10 || BATTERY_THRESHOLD > 50 )); then
     BATTERY_THRESHOLD=10  # fallback default
 fi
 
+# Extract timeout value from comment in service file
+TIMEOUT=$(awk -F' ' '/^# timeout / {print $3}' "$SERVICE_FILE")
+if [[ -z "$TIMEOUT" ]]; then
+    TIMEOUT=600  # fallback default
+fi
+
 # Helper for system logging
-log() { echo "$*" | systemd-cat -t 'wmp'; }
+log() { command -v systemd-cat &>/dev/null && echo "$*" | systemd-cat -t 'wmp' || echo "$*"; }
 
 # Ensure upower is installed if possible (for battery check)
 if ! command -v upower &>/dev/null; then
@@ -59,30 +61,31 @@ if [ "$ac_status" -ne 0 ]; then
         wall_msg="WakeMyPotata: Emergency shutdown! AC lost, battery at ${battery_percentage}% (≤ ${BATTERY_THRESHOLD}%).\nService will try to restart in $TIMEOUT seconds."
         echo -e "$wall_msg" | wall
         log "$wall_msg"
-        # RAID safe shutdown
-        mdadm --detail --scan | while read -r line; do
-            raid_dev=$(echo "$line" | awk '{print $2}' | cut -d'=' -f1 | tr -d '[]')
-            if ! mdadm --detail "$raid_dev" &>/dev/null; then continue; fi
-            disks=$(mdadm --detail "$raid_dev" 2>/dev/null | awk '/active sync/ && $0 !~ /spare/ {print $NF}' | sort -u)
-            mount_point=$(findmnt -n -o TARGET "$raid_dev" 2>/dev/null)
-            if [ -n "$mount_point" ]; then
-                log "Killing processes on $mount_point"
-                fuser -km "$mount_point" && log "Processes killed on $mount_point"
-                log "Unmounting $mount_point"
-                umount -f "$mount_point" || log "Failed to force unmount $mount_point"
-            fi
-            log "Stopping RAID device $raid_dev"
-            mdadm --stop "$raid_dev" || log "Failed to stop $raid_dev"
-            for disk in $disks; do
-                log "Powering off disk $disk"
-                udisksctl power-off -b "$disk" || log "Failed to power-off $disk"
+        if command -v mdadm &>/dev/null; then
+            # RAID safe shutdown
+            mdadm --detail --scan | while read -r line; do
+                raid_dev=$(echo "$line" | awk '{print $2}' | cut -d'=' -f1 | tr -d '[]')
+                if ! mdadm --detail "$raid_dev" &>/dev/null; then continue; fi
+                disks=$(mdadm --detail "$raid_dev" 2>/dev/null | awk '/active sync/ && $0 !~ /spare/ {print $NF}' | sort -u)
+                mount_point=$(findmnt -n -o TARGET "$raid_dev" 2>/dev/null)
+                if [ -n "$mount_point" ]; then
+                    log "Killing processes on $mount_point"
+                    fuser -km "$mount_point" && log "Processes killed on $mount_point"
+                    log "Unmounting $mount_point"
+                    umount -f "$mount_point" || log "Failed to force unmount $mount_point"
+                fi
+                log "Stopping RAID device $raid_dev"
+                mdadm --stop "$raid_dev" || log "Failed to stop $raid_dev"
+                for disk in $disks; do
+                    log "Powering off disk $disk"
+                    udisksctl power-off -b "$disk" || log "Failed to power-off $disk"
+                done
             done
-        done
+        fi
         log "Shutting down NOW! Scheduled boot in $TIMEOUT s"
         rtcwake -m off -s "$TIMEOUT"
     else
         log "AC lost, but battery > $BATTERY_THRESHOLD% ($battery_percentage%). No emergency shutdown."
-        # Stay alive—schedule a noop rtcwake, so device wakes if AC returns
         rtcwake -m no -s "$TIMEOUT"
     fi
 else
