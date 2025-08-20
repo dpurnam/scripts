@@ -3,11 +3,11 @@ version="v2.1.3"
 SERVICE_FILE="/etc/systemd/system/wmp.service"
 
 get_timeout() {
-    grep '^ExecStart=' "$SERVICE_FILE" | grep -oP '--timeout \K[0-9]+'
+    awk -F'--timeout ' '/^ExecStart=/{if (NF>1) {split($2,a," "); print a[1]}}' "$SERVICE_FILE"
 }
 
 get_threshold() {
-    grep '^ExecStart=' "$SERVICE_FILE" | grep -oP '--threshold \K[0-9]+'
+    awk -F'--threshold ' '/^ExecStart=/{if (NF>1) {split($2,a," "); print a[1]}}' "$SERVICE_FILE"
 }
 
 set_timeout() {
