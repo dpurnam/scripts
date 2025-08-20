@@ -1,0 +1,83 @@
+#!/bin/bash
+# WakeMyPotata emergency RAID/system safe shutdown
+# https://github.com/dpurnam/scripts/tree/main/WakeMyPotata
+# Inspired by - https://github.com/pablogila/WakeMyPotato
+
+version="v2.1.2"
+
+if [ "$1" = "help" ]; then
+    echo ""
+    echo "  WakeMyPotata user commands:"
+    echo ""
+    echo "  sudo wmp help           Show this help message"
+    echo "  sudo wmp version        Print the software version"
+    echo "  sudo wmp status         Check the service status"
+    echo "  sudo wmp log            View warning logs"
+    echo "  sudo wmp battery        Show battery status"
+    echo "  sudo wmp set <seconds>  Set new configuration"
+    echo "  sudo wmp run <seconds>  Run a manual check"
+    echo "  sudo wmp stop           Stop the service"
+    echo "  sudo wmp start          Start the service"
+    echo "  sudo wmp uninstall      Uninstall the service"
+    echo ""
+
+elif [ "$1" = "version" ]; then
+    echo "$version"
+
+elif [ "$1" = "status" ]; then
+    echo "WakeMyPotata status:"
+    tail -n 1 /etc/systemd/system/wmp.service
+    systemctl status wmp.timer
+
+elif [ "$1" = "log" ]; then
+    sudo journalctl -u wmp -p warning -r
+
+elif [ "$1" = "battery" ]; then
+    if ! command -v upower &>/dev/null; then
+        echo "upower not available. Try: sudo apt-get install upower"
+        exit 1
+    fi
+    BAT_PATH=$(upower -e 2>/dev/null | grep -m1 BAT || true)
+    if [ -n "$BAT_PATH" ]; then
+        upower -i "$BAT_PATH" | grep -E 'state|percentage|time to empty|time to full'
+    else
+        echo "No battery detected on this device."
+    fi
+
+elif [ "$1" = "set" ]; then
+    if [[ ! "$2" =~ ^[0-9]+$ ]]; then
+        echo "  Invalid input, please enter a positive integer! Aborting..."
+        exit 1
+    fi 
+    sed -i "s|^ExecStart=.*|ExecStart=/usr/local/sbin/wmp-run $2|" /etc/systemd/system/wmp.service
+    systemctl daemon-reload
+    echo "  Configuration updated successfully!"
+
+elif [ "$1" = "run" ]; then
+    if [[ ! "$2" =~ ^[0-9]+$ ]]; then
+        echo "  Invalid input, please enter a positive integer! Aborting..."
+        exit 1
+    fi
+    /usr/local/sbin/wmp-run $2
+
+elif [ "$1" = "stop" ]; then
+    systemctl stop wmp.timer
+    systemctl disable wmp.timer
+    systemctl daemon-reload
+
+elif [ "$1" = "start" ]; then
+    systemctl daemon-reload
+    systemctl enable wmp.timer
+    systemctl start wmp.timer
+
+elif [ "$1" = "uninstall" ]; then
+    echo "  Removing WakeMyPotata..."
+    systemctl stop wmp.timer
+    systemctl disable wmp.timer
+    rm -rf /etc/systemd/system/wmp.* /usr/local/sbin/wmp-run /usr/local/sbin/wmp
+    systemctl daemon-reload
+    echo "  All clear."
+
+else
+    echo "  Invalid command. Use 'sudo wmp help' to see available commands."
+fi
