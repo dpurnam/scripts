@@ -4,21 +4,30 @@
 
 set -euo pipefail
 
-SERVICE_FILE="/etc/systemd/system/wmp.service"
+# Default values
+TIMEOUT=600
+THRESHOLD=10
 
-# Get timeout from comment (line 1), or from ExecStart, fallback to 600
-TIMEOUT=$(sed -n '1s/^# timeout \([0-9]\+\).*$/\1/p' "$SERVICE_FILE")
-if [[ -z "$TIMEOUT" ]]; then
-    # Try ExecStart arg
-    TIMEOUT=$(awk -F' ' '/^ExecStart=/{split($2,x," "); print x[2]}' "$SERVICE_FILE")
-    if [[ -z "$TIMEOUT" ]]; then TIMEOUT=600; fi
-fi
+# Parse arguments from systemd ExecStart
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --timeout)
+            TIMEOUT="$2"
+            shift 2
+            ;;
+        --threshold)
+            THRESHOLD="$2"
+            shift 2
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
 
-# Get threshold from comment (line 2), fallback to 10
-BATTERY_THRESHOLD=$(sed -n '2s/^# threshold \([0-9]\+\).*$/\1/p' "$SERVICE_FILE")
-if [[ -z "$BATTERY_THRESHOLD" ]] || (( BATTERY_THRESHOLD < 10 || BATTERY_THRESHOLD > 50 )); then
-    BATTERY_THRESHOLD=10
-fi
+# Validate threshold and timeout
+if [[ ! "$TIMEOUT" =~ ^[0-9]+$ ]]; then TIMEOUT=600; fi
+if [[ ! "$THRESHOLD" =~ ^[0-9]+$ ]] || (( THRESHOLD < 10 || THRESHOLD > 50 )); then THRESHOLD=10; fi
 
 log() { command -v systemd-cat &>/dev/null && echo "$*" | systemd-cat -t 'wmp' || echo "$*"; }
 
@@ -53,8 +62,8 @@ fi
 ac_status=$(on_ac_power; echo $?)
 
 if [ "$ac_status" -ne 0 ]; then
-    if [ "$battery_percentage" -le "$BATTERY_THRESHOLD" ]; then
-        wall_msg="WakeMyPotata: Emergency shutdown! AC lost, battery at ${battery_percentage}% (≤ ${BATTERY_THRESHOLD}%).\nService will try to restart in $TIMEOUT seconds."
+    if [ "$battery_percentage" -le "$THRESHOLD" ]; then
+        wall_msg="WakeMyPotata: Emergency shutdown! AC lost, battery at ${battery_percentage}% (≤ ${THRESHOLD}%).\nService will try to restart in $TIMEOUT seconds."
         echo -e "$wall_msg" | wall
         log "$wall_msg"
         if command -v mdadm &>/dev/null; then
@@ -80,7 +89,7 @@ if [ "$ac_status" -ne 0 ]; then
         log "Shutting down NOW! Scheduled boot in $TIMEOUT s"
         rtcwake -m off -s "$TIMEOUT"
     else
-        log "AC lost, but battery > $BATTERY_THRESHOLD% ($battery_percentage%). No emergency shutdown."
+        log "AC lost, but battery > $THRESHOLD% ($battery_percentage%). No emergency shutdown."
         rtcwake -m no -s "$TIMEOUT"
     fi
 else
