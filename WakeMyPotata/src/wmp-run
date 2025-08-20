@@ -1,28 +1,27 @@
 #!/bin/bash
 # WakeMyPotata emergency RAID/system safe shutdown
 # Only works with devices that have a battery.
-# https://github.com/dpurnam/scripts/tree/main/WakeMyPotata
 
 set -euo pipefail
 
 SERVICE_FILE="/etc/systemd/system/wmp.service"
 
-# Extract threshold value from comment in service file
-BATTERY_THRESHOLD=$(awk -F' ' '/^# threshold / {print $3}' "$SERVICE_FILE")
-if [[ -z "$BATTERY_THRESHOLD" ]] || (( BATTERY_THRESHOLD < 10 || BATTERY_THRESHOLD > 50 )); then
-    BATTERY_THRESHOLD=10  # fallback default
-fi
-
-# Extract timeout value from comment in service file
-TIMEOUT=$(awk -F' ' '/^# timeout / {print $3}' "$SERVICE_FILE")
+# Get timeout from comment (line 1), or from ExecStart, fallback to 600
+TIMEOUT=$(sed -n '1s/^# timeout \([0-9]\+\).*$/\1/p' "$SERVICE_FILE")
 if [[ -z "$TIMEOUT" ]]; then
-    TIMEOUT=600  # fallback default
+    # Try ExecStart arg
+    TIMEOUT=$(awk -F' ' '/^ExecStart=/{split($2,x," "); print x[2]}' "$SERVICE_FILE")
+    if [[ -z "$TIMEOUT" ]]; then TIMEOUT=600; fi
 fi
 
-# Helper for system logging
+# Get threshold from comment (line 2), fallback to 10
+BATTERY_THRESHOLD=$(sed -n '2s/^# threshold \([0-9]\+\).*$/\1/p' "$SERVICE_FILE")
+if [[ -z "$BATTERY_THRESHOLD" ]] || (( BATTERY_THRESHOLD < 10 || BATTERY_THRESHOLD > 50 )); then
+    BATTERY_THRESHOLD=10
+fi
+
 log() { command -v systemd-cat &>/dev/null && echo "$*" | systemd-cat -t 'wmp' || echo "$*"; }
 
-# Ensure upower is installed if possible (for battery check)
 if ! command -v upower &>/dev/null; then
     log "upower not found. Attempting to install."
     if command -v apt-get &>/dev/null; then
@@ -39,21 +38,18 @@ if ! command -v upower &>/dev/null; then
     fi
 fi
 
-# Detect if battery exists
 BAT_PATH=$(upower -e 2>/dev/null | grep -m1 BAT || true)
 if [ -z "$BAT_PATH" ]; then
     log "No battery detected. WakeMyPotata only works with devices that have a battery. Exiting."
     exit 1
 fi
 
-# Battery present, get % level
 battery_percentage=$(upower -i "$BAT_PATH" 2>/dev/null | awk '/percentage:/ {gsub(/%/, "", $2); print $2}')
 if [ -z "$battery_percentage" ]; then
     battery_percentage=100
     log "Could not determine battery level, assuming 100%."
 fi
 
-# Check AC power status (0=on AC, nonzero=not on AC)
 ac_status=$(on_ac_power; echo $?)
 
 if [ "$ac_status" -ne 0 ]; then
@@ -62,7 +58,6 @@ if [ "$ac_status" -ne 0 ]; then
         echo -e "$wall_msg" | wall
         log "$wall_msg"
         if command -v mdadm &>/dev/null; then
-            # RAID safe shutdown
             mdadm --detail --scan | while read -r line; do
                 raid_dev=$(echo "$line" | awk '{print $2}' | cut -d'=' -f1 | tr -d '[]')
                 if ! mdadm --detail "$raid_dev" &>/dev/null; then continue; fi
