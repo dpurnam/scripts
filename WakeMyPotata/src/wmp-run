@@ -7,8 +7,15 @@ set -euo pipefail
 
 # Default timeout
 TIMEOUT="${1:-600}"
-# Battery threshold (%)
-BATTERY_THRESHOLD=10
+
+# Get service file path (hardcoded or via $0 if symlinked)
+SERVICE_FILE="/etc/systemd/system/wmp.service"
+
+# Extract threshold value from comment in service file
+BATTERY_THRESHOLD=$(awk -F' ' '/^# threshold / {print $3}' "$SERVICE_FILE")
+if [[ -z "$BATTERY_THRESHOLD" ]]; then
+    BATTERY_THRESHOLD=10  # fallback default
+fi
 
 # Helper for system logging
 log() { echo "$*" | systemd-cat -t 'wmp'; }
