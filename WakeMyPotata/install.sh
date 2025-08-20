@@ -75,6 +75,6 @@ sed -i "s|^ExecStart=.*|ExecStart=$BIN_DIR/wmp-run $timeout|" "$SYSTEMD_DIR/wmp.
 systemctl daemon-reload
 systemctl enable wmp.timer
 systemctl start wmp.timer
-
+echo ""
 echo -e "${GREEN}${BOLD}WakeMyPotata${NC} ${GREEN}installed successfully!${NC}"
 echo -e "${YELLOW}Use '${BOLD}${YELLOW}sudo wmp help${NC}' ${YELLOW}for info on user commands.${NC}"
