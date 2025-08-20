@@ -24,7 +24,11 @@ echo ""
 echo -e "${YELLOW}Enter amount of time (in seconds) to wake up the device ${BOLD}after a blackout${NC} ${YELLOW}or leave empty to use the default 600 seconds!${NC}"
 read -p "  ==> " timeout < /dev/tty
 echo ""
+echo -e "${YELLOW}Enter battery level threshold (in % between 10-50) to wake up the device ${BOLD}after a blackout${NC} ${YELLOW}or leave empty to use the default value of 10%!${NC}"
+read -p "  ==> " threshold < /dev/tty
+echo ""
 
+# Timeout
 if [[ -z "$timeout" ]]; then
     timeout=600
 fi
@@ -32,6 +36,19 @@ if [[ ! "$timeout" =~ ^[0-9]+$ ]]; then
     echo -e "${BOLD}${RED}Invalid input, please enter a positive integer! Aborting...${NC}"
     exit 1
 fi
+
+# Threshold
+# Use default if empty
+if [[ -z "$threshold" ]]; then
+    threshold=10
+fi
+# Validate input: integer between 10 and 50
+if [[ ! "$threshold" =~ ^[0-9]+$ ]] || (( threshold < 10 || threshold > 50 )); then
+    echo -e "${BOLD}${RED}Invalid input, please enter a positive integer between 10 and 50! Aborting...${NC}"
+    exit 1
+fi
+# Set the variable
+BATTERY_THRESHOLD=$threshold
 
 # Check for upower and install if missing
 if ! command -v upower &>/dev/null; then
@@ -71,6 +88,8 @@ chmod 744 "$BIN_DIR/wmp" "$BIN_DIR/wmp-run"
 
 # Patch ExecStart for timeout
 sed -i "s|^ExecStart=.*|ExecStart=$BIN_DIR/wmp-run $timeout|" "$SYSTEMD_DIR/wmp.service"
+# Add threshold comment after ExecStart
+sed -i "/^ExecStart=/a # threshold $BATTERY_THRESHOLD" "$SYSTEMD_DIR/wmp.service"
 
 systemctl daemon-reload
 systemctl enable wmp.timer
