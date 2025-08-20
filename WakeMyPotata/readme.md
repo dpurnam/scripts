@@ -75,7 +75,7 @@ To check all available commands, use `sudo wmp help`.
   Handles low battery scenario, only triggers shutdown when necessary, and schedules rtcwake for AC restoration.
 - [wmp](https://github.com/dpurnam/scripts/blob/main/WakeMyPotata/src/wmp) : The Control Script.
 
-  Robust CLI for manual intevention.
+  Robust CLI for manual intervention.
 - [wmp.service](https://github.com/dpurnam/scripts/blob/main/WakeMyPotata/src/wmp.service) : The Systemd Service Unit.
 
   Systemd Service Unit quitely running in the background.
