@@ -1,16 +1,13 @@
 #!/bin/bash
-# WakeMyPotata emergency RAID/system safe shutdown
-# For battery-powered devices only
-
 version="v2.1.3"
 SERVICE_FILE="/etc/systemd/system/wmp.service"
 
 get_timeout() {
-    awk -F'--timeout ' '/^ExecStart=/{split($2,x," "); print x[1]}' "$SERVICE_FILE"
+    grep '^ExecStart=' "$SERVICE_FILE" | grep -oP '--timeout \K[0-9]+'
 }
 
 get_threshold() {
-    awk -F'--threshold ' '/^ExecStart=/{split($2,x," "); print x[1]}' "$SERVICE_FILE"
+    grep '^ExecStart=' "$SERVICE_FILE" | grep -oP '--threshold \K[0-9]+'
 }
 
 set_timeout() {
