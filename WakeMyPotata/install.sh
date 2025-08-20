@@ -9,22 +9,33 @@ REPO_URL="https://raw.githubusercontent.com/dpurnam/scripts/main/WakeMyPotata"
 BIN_DIR="/usr/local/sbin"
 SYSTEMD_DIR="/etc/systemd/system"
 
-echo "  Welcome to the WakeMyPotata installer!"
-echo "  Enter seconds to wake up after a blackout,"
-echo "  leave empty to use the default 600 seconds:"
-read -p "  > " timeout
+# ANSI color codes
+RED='\e[31m'
+GREEN='\e[32m'
+YELLOW='\e[93m'
+BOLD='\e[1m'
+ITALIC='\e[3m'
+NC='\e[0m' # No Color
+
+echo -e "${BOLD}======================================${NC}"
+echo -e "${GREEN}Welcome to the ${BOLD}WakeMyPotata installer!${NC}"
+echo -e "${BOLD}======================================${NC}"
+echo ""
+echo "${YELLOW}Enter amount of time (in seconds) to wake up the device after a blackout or leave empty to use the default 600 seconds!${NC}"
+read -p "  ==> " timeout < /dev/tty
+echo ""
 
 if [[ -z "$timeout" ]]; then
     timeout=600
 fi
 if [[ ! "$timeout" =~ ^[0-9]+$ ]]; then
-    echo "  Invalid input, please enter a positive integer! Aborting..."
+    echo -e "${BOLD}${RED}Invalid input, please enter a positive integer! Aborting...${NC}"
     exit 1
 fi
 
 # Check for upower and install if missing
 if ! command -v upower &>/dev/null; then
-    echo "  upower not found. Attempting to install (requires sudo/root)..."
+    echo -e "${YELLOW}${BOLD}upower${NC} ${YELLOW}not found. Attempting to install (requires sudo/root)...${NC}"
     if command -v apt-get &>/dev/null; then
         sudo apt-get update && sudo apt-get install -y upower
     elif command -v dnf &>/dev/null; then
@@ -34,7 +45,7 @@ if ! command -v upower &>/dev/null; then
     elif command -v pacman &>/dev/null; then
         sudo pacman -Sy upower
     else
-        echo "  Could not detect package manager. Please install upower manually for battery support."
+        echo -e "${RED}Could not detect package manager. Please install ${BOLD}upower${NC} ${RED}manually for battery support.${NC}"
         exit 1
     fi
 fi
@@ -42,11 +53,11 @@ fi
 # ABORT install if no battery detected
 BAT_PATH=$(upower -e 2>/dev/null | grep -m1 BAT || true)
 if [ -z "$BAT_PATH" ]; then
-    echo "  ERROR: No battery detected. WakeMyPotata only works on devices with a battery. Aborting install."
+    echo -e "${RED}${BOLD}ERROR:${NC} ${RED}No battery detected. ${BOLD}WakeMyPotata${NC} ${RED}only works on devices with a battery. Aborting install.${NC}"
     exit 1
 fi
 
-echo "  Downloading and installing WakeMyPotata files..."
+echo -e "${YELLOW}Downloading and installing WakeMyPotata files...${NC}"
 
 # Download and install systemd units
 curl -sSL "$REPO_URL/src/wmp.timer" -o "$SYSTEMD_DIR/wmp.timer"
@@ -65,5 +76,5 @@ systemctl daemon-reload
 systemctl enable wmp.timer
 systemctl start wmp.timer
 
-echo "  WakeMyPotata installed successfully!"
-echo "  Use 'sudo wmp help' for info on user commands."
+echo -e "${GREEN}${BOLD}WakeMyPotata${NC} ${GREEN}installed successfully!${NC}"
+echo -e "${YELLOW}Use '${BOLD}${YELLOW}sudo wmp help${NC}' ${YELLOW}for info on user commands.${NC}"
