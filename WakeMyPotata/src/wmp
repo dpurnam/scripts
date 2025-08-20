@@ -7,18 +7,23 @@ SERVICE_FILE="/etc/systemd/system/wmp.service"
 
 # Use grep to find the line containing ExecStart and store it in a variable.
 # The `cut` command ensures we only get the content after `ExecStart=`.
-exec_start_line=$(grep '^ExecStart=' "${SERVICE_FILE}" | cut -d'=' -f2)
+#exec_start_line=$(grep '^ExecStart=' "${SERVICE_FILE}" | cut -d'=' -f2)
+exec_start_line=$(grep '^ExecStart=' "${SERVICE_FILE}")
 
 # Function to get the timeout value.
 get_timeout() {
     # This `awk` command finds `--timeout` and prints the next argument.
-    echo "${exec_start_line}" | awk -v RS=" " '/--timeout/{print (NR>1? p:""); p=0; next}{p=$1}END{print p}'
+    #echo "${exec_start_line}" | awk -v RS=" " '/--timeout/{print (NR>1? p:""); p=0; next}{p=$1}END{print p}'
+    timeout_value=$(echo "${exec_start_line}" | awk -F'--timeout ' '{print $2}' | awk '{print $1}')
+    echo $timeout_value
 }
 
 # Function to get the threshold value.
 get_threshold() {
     # This `awk` command finds `--threshold` and prints the next argument.
-    echo "${exec_start_line}" | awk -v RS=" " '/--threshold/{print (NR>1? p:""); p=0; next}{p=$1}END{print p}'
+    #echo "${exec_start_line}" | awk -v RS=" " '/--threshold/{print (NR>1? p:""); p=0; next}{p=$1}END{print p}'
+    threshold_value=$(echo "${exec_start_line}" | awk -F'--threshold ' '{print $2}' | awk '{print $1}')
+    echo $threshold_value
 }
 
 # Function to set the timeout value.
