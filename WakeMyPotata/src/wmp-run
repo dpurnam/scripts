@@ -1,97 +1,154 @@
 #!/bin/bash
 # WakeMyPotata emergency RAID/system safe shutdown
-# Only works with devices that have a battery.
+# For battery-powered devices only
 
-set -euo pipefail
+version="v2.1.3"
+SERVICE_FILE="/etc/systemd/system/wmp.service"
 
-# Default values
-TIMEOUT=600
-THRESHOLD=10
+get_timeout() {
+    awk -F'--timeout ' '/^ExecStart=/{split($2,x," "); print x[1]}' "$SERVICE_FILE"
+}
 
-# Parse arguments from systemd ExecStart
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --timeout)
-            TIMEOUT="$2"
-            shift 2
-            ;;
-        --threshold)
-            THRESHOLD="$2"
-            shift 2
-            ;;
-        *)
-            shift
-            ;;
-    esac
-done
+get_threshold() {
+    awk -F'--threshold ' '/^ExecStart=/{split($2,x," "); print x[1]}' "$SERVICE_FILE"
+}
 
-# Validate threshold and timeout
-if [[ ! "$TIMEOUT" =~ ^[0-9]+$ ]]; then TIMEOUT=600; fi
-if [[ ! "$THRESHOLD" =~ ^[0-9]+$ ]] || (( THRESHOLD < 10 || THRESHOLD > 50 )); then THRESHOLD=10; fi
+set_timeout() {
+    local new_timeout="$1"
+    local current_threshold="$(get_threshold)"
+    sed -i "s|^ExecStart=.*|ExecStart=/usr/local/sbin/wmp-run --threshold $current_threshold --timeout $new_timeout|" "$SERVICE_FILE"
+    systemctl daemon-reload
+}
 
-log() { command -v systemd-cat &>/dev/null && echo "$*" | systemd-cat -t 'wmp' || echo "$*"; }
+set_threshold() {
+    local new_threshold="$1"
+    local current_timeout="$(get_timeout)"
+    sed -i "s|^ExecStart=.*|ExecStart=/usr/local/sbin/wmp-run --threshold $new_threshold --timeout $current_timeout|" "$SERVICE_FILE"
+    systemctl daemon-reload
+}
 
-if ! command -v upower &>/dev/null; then
-    log "upower not found. Attempting to install."
-    if command -v apt-get &>/dev/null; then
-        sudo apt-get update && sudo apt-get install -y upower
-    elif command -v dnf &>/dev/null; then
-        sudo dnf install -y upower
-    elif command -v yum &>/dev/null; then
-        sudo yum install -y upower
-    elif command -v pacman &>/dev/null; then
-        sudo pacman -Sy upower
-    else
-        log "Could not detect package manager. Please install upower manually."
+if [[ "$1" == "help" ]]; then
+    echo ""
+    echo "  WakeMyPotata user commands:"
+    echo ""
+    echo "  sudo wmp help                                            Show this help message"
+    echo "  sudo wmp version                                         Print the software version"
+    echo "  sudo wmp status                                          Check the service status"
+    echo "  sudo wmp log                                             View warning logs"
+    echo "  sudo wmp battery                                         Show battery status"
+    echo "  sudo wmp threshold                                       Show battery level threshold in %"
+    echo "  sudo wmp threshold set <percent>                         Set battery level threshold in % (10-50)"
+    echo "  sudo wmp timeout                                         Show timeout value (seconds)"
+    echo "  sudo wmp timeout set <seconds>                           Set new timeout value"
+    echo "  sudo wmp run --timeout <seconds>                         Run a manual check (timeout is required)"
+    echo "  sudo wmp stop                                            Stop the service"
+    echo "  sudo wmp start                                           Start the service"
+    echo "  sudo wmp uninstall                                       Uninstall the service"
+    echo ""
+    echo "  NOTE: WakeMyPotata only works on devices with a battery."
+    echo ""
+
+elif [[ "$1" == "version" ]]; then
+    echo "$version"
+
+elif [[ "$1" == "status" ]]; then
+    echo "WakeMyPotata status:"
+    systemctl status wmp.service
+    systemctl status wmp.timer
+    echo "Timeout: $(get_timeout) seconds"
+    echo "Threshold: $(get_threshold)%"
+
+elif [[ "$1" == "log" ]]; then
+    sudo journalctl -u wmp -p warning -r
+
+elif [[ "$1" == "battery" ]]; then
+    if ! command -v upower &>/dev/null; then
+        echo "upower not available. Try: sudo apt-get install upower"
         exit 1
     fi
-fi
-
-BAT_PATH=$(upower -e 2>/dev/null | grep -m1 BAT || true)
-if [ -z "$BAT_PATH" ]; then
-    log "No battery detected. WakeMyPotata only works with devices that have a battery. Exiting."
-    exit 1
-fi
-
-battery_percentage=$(upower -i "$BAT_PATH" 2>/dev/null | awk '/percentage:/ {gsub(/%/, "", $2); print $2}')
-if [ -z "$battery_percentage" ]; then
-    battery_percentage=100
-    log "Could not determine battery level, assuming 100%."
-fi
-
-ac_status=$(on_ac_power; echo $?)
-
-if [ "$ac_status" -ne 0 ]; then
-    if [ "$battery_percentage" -le "$THRESHOLD" ]; then
-        wall_msg="WakeMyPotata: Emergency shutdown! AC lost, battery at ${battery_percentage}% (≤ ${THRESHOLD}%).\nService will try to restart in $TIMEOUT seconds."
-        echo -e "$wall_msg" | wall
-        log "$wall_msg"
-        if command -v mdadm &>/dev/null; then
-            mdadm --detail --scan | while read -r line; do
-                raid_dev=$(echo "$line" | awk '{print $2}' | cut -d'=' -f1 | tr -d '[]')
-                if ! mdadm --detail "$raid_dev" &>/dev/null; then continue; fi
-                disks=$(mdadm --detail "$raid_dev" 2>/dev/null | awk '/active sync/ && $0 !~ /spare/ {print $NF}' | sort -u)
-                mount_point=$(findmnt -n -o TARGET "$raid_dev" 2>/dev/null)
-                if [ -n "$mount_point" ]; then
-                    log "Killing processes on $mount_point"
-                    fuser -km "$mount_point" && log "Processes killed on $mount_point"
-                    log "Unmounting $mount_point"
-                    umount -f "$mount_point" || log "Failed to force unmount $mount_point"
-                fi
-                log "Stopping RAID device $raid_dev"
-                mdadm --stop "$raid_dev" || log "Failed to stop $raid_dev"
-                for disk in $disks; do
-                    log "Powering off disk $disk"
-                    udisksctl power-off -b "$disk" || log "Failed to power-off $disk"
-                done
-            done
-        fi
-        log "Shutting down NOW! Scheduled boot in $TIMEOUT s"
-        rtcwake -m off -s "$TIMEOUT"
+    BAT_PATH=$(upower -e 2>/dev/null | grep -m1 BAT || true)
+    if [ -n "$BAT_PATH" ]; then
+        upower -i "$BAT_PATH" | grep -E 'state|percentage|time to empty|time to full'
     else
-        log "AC lost, but battery > $THRESHOLD% ($battery_percentage%). No emergency shutdown."
-        rtcwake -m no -s "$TIMEOUT"
+        echo "No battery detected on this device. WakeMyPotata will not run."
     fi
+
+elif [[ "$1" == "threshold" ]]; then
+    echo "Battery threshold: $(get_threshold)%"
+
+elif [[ "$1" == "threshold" && "$2" == "set" ]]; then
+    echo "Usage: sudo wmp threshold set <percent>"
+    echo "       percent should be a number between 10 and 50"
+    exit 1
+
+elif [[ "$1" == "threshold" && "$2" == "set" && -n "$3" ]]; then
+    if [[ ! "$3" =~ ^[0-9]+$ ]] || (( $3 < 10 || $3 > 50 )); then
+        echo "Invalid input, please enter a positive integer (between 10 and 50)! Aborting..."
+        exit 1
+    fi
+    set_threshold "$3"
+    echo "Threshold updated successfully to $3%!"
+
+elif [[ "$1" == "timeout" ]]; then
+    echo "Timeout: $(get_timeout) seconds"
+
+elif [[ "$1" == "timeout" && "$2" == "set" ]]; then
+    echo "Usage: sudo wmp timeout set <seconds>"
+    exit 1
+
+elif [[ "$1" == "timeout" && "$2" == "set" && -n "$3" ]]; then
+    if [[ ! "$3" =~ ^[0-9]+$ ]] || (( $3 < 1 )); then
+        echo "Invalid input, please enter a positive integer (seconds)! Aborting..."
+        exit 1
+    fi
+    set_timeout "$3"
+    echo "Timeout updated successfully to $3 seconds!"
+
+elif [[ "$1" == "run" ]]; then
+    shift
+    local_timeout=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --timeout)
+                if [[ -n "$2" ]] && [[ "$2" =~ ^[0-9]+$ ]] && (( $2 >= 1 )); then
+                    local_timeout="$2"
+                    shift 2
+                else
+                    echo "Invalid or missing --timeout value. Must be a positive integer."
+                    exit 1
+                fi
+                ;;
+            *)
+                echo "Unknown argument: $1"
+                echo "Usage: sudo wmp run --timeout <seconds>"
+                exit 1
+                ;;
+        esac
+    done
+    if [[ -z "$local_timeout" ]]; then
+        echo "Missing required argument: --timeout <seconds>"
+        exit 1
+    fi
+    /usr/local/sbin/wmp-run --timeout "$local_timeout"
+
+elif [[ "$1" == "stop" ]]; then
+    systemctl stop wmp.timer
+    systemctl disable wmp.timer
+    systemctl daemon-reload
+
+elif [[ "$1" == "start" ]]; then
+    systemctl daemon-reload
+    systemctl enable wmp.timer
+    systemctl start wmp.timer
+
+elif [[ "$1" == "uninstall" ]]; then
+    echo "Removing WakeMyPotata..."
+    systemctl stop wmp.timer
+    systemctl disable wmp.timer
+    rm -rf /etc/systemd/system/wmp.* /usr/local/sbin/wmp-run /usr/local/sbin/wmp
+    systemctl daemon-reload
+    echo "All clear."
+
 else
-    log "AC power OK. No action required."
+    echo "Invalid command. Use 'sudo wmp help' to see available commands."
 fi
