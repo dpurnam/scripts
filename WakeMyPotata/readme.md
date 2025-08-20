@@ -52,21 +52,24 @@ To remove, just run:
 sudo wmp uninstall
 ```
 
-## [Usage](https://github.com/pablogila/WakeMyPotato/tree/main#usage)
+## Usage
 The service includes the `wmp` utility to perform several tasks.
 To check all available commands, use `sudo wmp help`.
 
 | Command | Description |
 | ------- | ----------- |
-| `sudo wmp help`          | Show all available commands |
-| `sudo wmp version`       | Print the software version |
-| `sudo wmp status`        | Check the service status |
-| `sudo wmp log`           | View recent warning logs |
-| `sudo wmp set <seconds>` | Set new configuration |
-| `sudo wmp run <seconds>` | Run a manual check |
-| `sudo wmp stop`          | Stop the service |
-| `sudo wmp start`         | Start the service |
-| `sudo wmp uninstall`     | Uninstall the service |
+| `sudo wmp help`                    | Show all available commands |
+| `sudo wmp version`                 | Print the software version |
+| `sudo wmp status`                  | Check the service status |
+| `sudo wmp log`                     | View recent warning logs |
+| `sudo wmp threshold`               | Show battery level threshold in % |
+| `sudo wmp threshold set <percent>` | Set battery level threshold in % (10-50) |
+| `sudo wmp timeout`                 | Show timeout value (seconds) |
+| `sudo wmp timeout set <seconds>`   | Set new timeout value |
+| `sudo wmp run <seconds>`           | Run a manual check |
+| `sudo wmp stop`                    | Stop the service |
+| `sudo wmp start`                   | Start the service |
+| `sudo wmp uninstall`               | Uninstall the service |
 
 ## Components
 
