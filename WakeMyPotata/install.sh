@@ -1,7 +1,7 @@
 #!/bin/bash
 # WakeMyPotata emergency RAID/system safe shutdown
+# For battery-powered devices only
 # https://github.com/dpurnam/scripts/tree/main/WakeMyPotata
-# Inspired by - https://github.com/pablogila/WakeMyPotato
 
 set -e
 
@@ -35,13 +35,15 @@ if ! command -v upower &>/dev/null; then
         sudo pacman -Sy upower
     else
         echo "  Could not detect package manager. Please install upower manually for battery support."
+        exit 1
     fi
 fi
 
-# Warn user if no battery (informational, does not block install)
+# ABORT install if no battery detected
 BAT_PATH=$(upower -e 2>/dev/null | grep -m1 BAT || true)
 if [ -z "$BAT_PATH" ]; then
-    echo "  Warning: No battery detected. WakeMyPotata will run in AC-only mode."
+    echo "  ERROR: No battery detected. WakeMyPotata only works on devices with a battery. Aborting install."
+    exit 1
 fi
 
 echo "  Downloading and installing WakeMyPotata files..."
