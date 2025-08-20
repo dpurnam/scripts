@@ -1,5 +1,5 @@
 [Unit]
-Description=WakeMyPotata: Restart the system after power outages
+Description=WakeMyPotata: Emergency RAID/system safe shutdown (battery-only)
 
 [Service]
 Type=oneshot
