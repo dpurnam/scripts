@@ -1,7 +1,6 @@
 #!/bin/bash
 # WakeMyPotata emergency RAID/system safe shutdown
 # For battery-powered devices only
-# https://github.com/dpurnam/scripts/tree/main/WakeMyPotata
 
 set -e
 
@@ -9,12 +8,10 @@ REPO_URL="https://raw.githubusercontent.com/dpurnam/scripts/main/WakeMyPotata"
 BIN_DIR="/usr/local/sbin"
 SYSTEMD_DIR="/etc/systemd/system"
 
-# ANSI color codes
 RED='\e[31m'
 GREEN='\e[32m'
 YELLOW='\e[93m'
 BOLD='\e[1m'
-ITALIC='\e[3m'
 NC='\e[0m' # No Color
 
 echo -e "${BOLD}======================================${NC}"
@@ -73,23 +70,26 @@ fi
 
 echo -e "${YELLOW}Downloading and installing WakeMyPotata files...${NC}"
 
-# Download and install systemd units, with error handling
+# Download systemd units (with error handling)
 curl -sSL "$REPO_URL/src/wmp.timer" -o "$SYSTEMD_DIR/wmp.timer" || { echo "Failed to download wmp.timer"; exit 1; }
 curl -sSL "$REPO_URL/src/wmp.service" -o "$SYSTEMD_DIR/wmp.service" || { echo "Failed to download wmp.service"; exit 1; }
 chmod 644 "$SYSTEMD_DIR/wmp.timer" "$SYSTEMD_DIR/wmp.service"
 
-# Download and install main scripts
+# Download main scripts
 curl -sSL "$REPO_URL/src/wmp" -o "$BIN_DIR/wmp" || { echo "Failed to download wmp"; exit 1; }
 curl -sSL "$REPO_URL/src/wmp-run" -o "$BIN_DIR/wmp-run" || { echo "Failed to download wmp-run"; exit 1; }
 chmod 744 "$BIN_DIR/wmp" "$BIN_DIR/wmp-run"
 
-# Patch ExecStart for timeout
+# Patch Service file (comments first, then ExecStart)
+sed -i '1,2{/^# timeout /d; /^# threshold /d}' "$SYSTEMD_DIR/wmp.service"
+sed -i "1i# timeout $timeout (Do not Modify this auto-generated line!)" "$SYSTEMD_DIR/wmp.service"
+sed -i "2i# threshold $BATTERY_THRESHOLD (Do not Modify this auto-generated line!)" "$SYSTEMD_DIR/wmp.service"
 sed -i "s|^ExecStart=.*|ExecStart=$BIN_DIR/wmp-run $timeout|" "$SYSTEMD_DIR/wmp.service"
-# Add threshold comment after ExecStart
-sed -i "/^Description=/a # threshold $BATTERY_THRESHOLD (Do not Modify this auto-generated line!)\n# timeout $timeout (Do not Modify this auto-generated line!)" "$SYSTEMD_DIR/wmp.service"
 
-# Also patch timer file with threshold and timeout comments
-sed -i "/^Description=/a # threshold $BATTERY_THRESHOLD (Do not Modify this auto-generated line!)\n# timeout $timeout (Do not Modify this auto-generated line!)" "$SYSTEMD_DIR/wmp.timer"
+# Patch Timer file similarly (comments only)
+sed -i '1,2{/^# timeout /d; /^# threshold /d}' "$SYSTEMD_DIR/wmp.timer"
+sed -i "1i# timeout $timeout (Do not Modify this auto-generated line!)" "$SYSTEMD_DIR/wmp.timer"
+sed -i "2i# threshold $BATTERY_THRESHOLD (Do not Modify this auto-generated line!)" "$SYSTEMD_DIR/wmp.timer"
 
 systemctl daemon-reload
 systemctl enable wmp.timer
