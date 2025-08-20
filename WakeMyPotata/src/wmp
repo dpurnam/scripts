@@ -5,42 +5,23 @@
 version="v2.1.3"
 SERVICE_FILE="/etc/systemd/system/wmp.service"
 
+# Use grep to find the line containing ExecStart and store it in a variable.
+# The `cut` command ensures we only get the content after `ExecStart=`.
+exec_start_line=$(grep '^ExecStart=' "${SERVICE_FILE}" | cut -d'=' -f2)
+
+# Function to get the timeout value.
 get_timeout() {
-    # Extract --timeout argument from ExecStart line
-    awk '
-        /^ExecStart=/ {
-            for (i=1; i<=NF; i++) {
-                if ($i ~ /^--timeout$/) {
-                    print $(i+1)
-                    exit
-                } else if ($i ~ /^--timeout=[0-9]+$/) {
-                    split($i, arr, "=")
-                    print arr[2]
-                    exit
-                }
-            }
-        }
-    ' "$SERVICE_FILE"
+    # This `awk` command finds `--timeout` and prints the next argument.
+    echo "${exec_start_line}" | awk -v RS=" " '/--timeout/{print (NR>1? p:""); p=0; next}{p=$1}END{print p}'
 }
 
+# Function to get the threshold value.
 get_threshold() {
-    # Extract --threshold argument from ExecStart line
-    awk '
-        /^ExecStart=/ {
-            for (i=1; i<=NF; i++) {
-                if ($i ~ /^--threshold$/) {
-                    print $(i+1)
-                    exit
-                } else if ($i ~ /^--threshold=[0-9]+$/) {
-                    split($i, arr, "=")
-                    print arr[2]
-                    exit
-                }
-            }
-        }
-    ' "$SERVICE_FILE"
+    # This `awk` command finds `--threshold` and prints the next argument.
+    echo "${exec_start_line}" | awk -v RS=" " '/--threshold/{print (NR>1? p:""); p=0; next}{p=$1}END{print p}'
 }
 
+# Function to set the timeout value.
 set_timeout() {
     local new_timeout="$1"
     local current_threshold="$(get_threshold)"
@@ -50,6 +31,7 @@ set_timeout() {
     systemctl daemon-reload
 }
 
+# Function to set the threshold value.
 set_threshold() {
     local new_threshold="$1"
     local current_timeout="$(get_timeout)"
