@@ -1,18 +1,51 @@
 #!/bin/bash
+# WakeMyPotata emergency RAID/system safe shutdown
+# For battery-powered devices only
+
 version="v2.1.3"
 SERVICE_FILE="/etc/systemd/system/wmp.service"
 
 get_timeout() {
-    awk -F'--timeout ' '/^ExecStart=/{if (NF>1) {split($2,a," "); print a[1]}}' "$SERVICE_FILE"
+    # Extract --timeout argument from ExecStart line
+    awk '
+        /^ExecStart=/ {
+            for (i=1; i<=NF; i++) {
+                if ($i ~ /^--timeout$/) {
+                    print $(i+1)
+                    exit
+                } else if ($i ~ /^--timeout=[0-9]+$/) {
+                    split($i, arr, "=")
+                    print arr[2]
+                    exit
+                }
+            }
+        }
+    ' "$SERVICE_FILE"
 }
 
 get_threshold() {
-    awk -F'--threshold ' '/^ExecStart=/{if (NF>1) {split($2,a," "); print a[1]}}' "$SERVICE_FILE"
+    # Extract --threshold argument from ExecStart line
+    awk '
+        /^ExecStart=/ {
+            for (i=1; i<=NF; i++) {
+                if ($i ~ /^--threshold$/) {
+                    print $(i+1)
+                    exit
+                } else if ($i ~ /^--threshold=[0-9]+$/) {
+                    split($i, arr, "=")
+                    print arr[2]
+                    exit
+                }
+            }
+        }
+    ' "$SERVICE_FILE"
 }
 
 set_timeout() {
     local new_timeout="$1"
     local current_threshold="$(get_threshold)"
+    # Default to 10 if not present
+    [[ -z "$current_threshold" ]] && current_threshold=10
     sed -i "s|^ExecStart=.*|ExecStart=/usr/local/sbin/wmp-run --threshold $current_threshold --timeout $new_timeout|" "$SERVICE_FILE"
     systemctl daemon-reload
 }
@@ -20,6 +53,8 @@ set_timeout() {
 set_threshold() {
     local new_threshold="$1"
     local current_timeout="$(get_timeout)"
+    # Default to 600 if not present
+    [[ -z "$current_timeout" ]] && current_timeout=600
     sed -i "s|^ExecStart=.*|ExecStart=/usr/local/sbin/wmp-run --threshold $new_threshold --timeout $current_timeout|" "$SERVICE_FILE"
     systemctl daemon-reload
 }
