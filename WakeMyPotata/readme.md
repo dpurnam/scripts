@@ -1,10 +1,42 @@
 WakeMyPotata
 =============
 
-WakeMyPotata (WMP) is a simple and last-resort systemd Linux service to keep your old potata laptop(s) alive and running in the event of a power failure.
+**WakeMyPotata** is a Linux tool designed to protect your data and RAID systems from sudden AC power loss on devices with a battery (like laptops or battery-backed servers). It monitors your battery and power status, and if AC power is lost and your battery drops below a set threshold, it safely shuts down your system and schedules an automatic restart after a specified time.
 
 Inspired by [WakeMyPotato](https://github.com/pablogila/WakeMyPotato)
 
+## Who Should Use It?
+- Laptop or battery-backed server users who want automated, safe shutdown and reboot after power outages.
+- Anyone running RAID arrays or important file systems on systems with a battery that need extra protection from power events.
+
+## Why Use WakeMyPotata?
+
+- **Protects your RAID and data**
+
+  Ensures RAID arrays and file systems are safely unmounted before the system shuts down, reducing risk of data loss or corruption.
+- **Automatic recovery**
+
+  Schedules your device to wake up and restart after power returns, minimizing downtime.
+- **Customizable**
+
+  Set your preferred battery threshold and wake timeout to match your needs.
+- **Seamless integration**
+
+  Installs as a systemd service and timer, working quietly in the background.
+- **Easy control**
+
+  Includes a command-line interface for checking battery status, setting configuration, viewing logs, and managing the service.
+
+## Pre-requisites
+- A functional/healthy **Device** Battery
+- A functional/healthy **CMOS** Battery
+- **RTC Wake** Feature available on the device
+
+  To check, run this command, which should instantly poweroff the device and boot it up after **2 minutes** (time specified in seconds)
+    ```shell
+    sudo rtcwake --list-modes ; sleep 10
+    sudo rtcwake -m off -s 120
+    ```
 
 ## Installation / Removal
 
@@ -40,24 +72,17 @@ To check all available commands, use `sudo wmp help`.
 
 - [wmp-run](https://github.com/dpurnam/scripts/blob/main/WakeMyPotata/src/wmp-run) : The Core Intelligence.
 
-  Handles both battery-present and battery-absent scenarios, only triggers shutdown when necessary, and schedules rtcwake for AC restoration.
+  Handles low battery scenario, only triggers shutdown when necessary, and schedules rtcwake for AC restoration.
 - [wmp](https://github.com/dpurnam/scripts/blob/main/WakeMyPotata/src/wmp) : The Control Script.
 
-  Adds a battery command for user status, more robust CLI.
-- [wmp.service](https://github.com/dpurnam/scripts/blob/main/WakeMyPotata/src/wmp.service) : The Systemd Service Unit File.
+  Robust CLI for manual intevention.
+- [wmp.service](https://github.com/dpurnam/scripts/blob/main/WakeMyPotata/src/wmp.service) : The Systemd Service Unit.
 
-  No major changes, but fully compatible with revised logic.
-- [wmp.timer](https://github.com/dpurnam/scripts/blob/main/WakeMyPotata/src/wmp.timer) : The Systemd Service Timer File.
+  Systemd Service Unit quitely running in the background.
+- [wmp.timer](https://github.com/dpurnam/scripts/blob/main/WakeMyPotata/src/wmp.timer) : The Systemd Service Timer.
 
-  No major changes, but fully compatible with revised logic.
+  Service Timer quitely supporting the Systemd Service Unit.
 
-## Scenarios Supported
-Scenario 1:
-- Battery exists
-- rtcwake/shutdown is only triggered if BOTH AC power is lost AND battery ≤ 10%
-- If AC returns before battery hits 10%, no shutdown
-
-Scenario 2:
-- No battery present
-- On AC loss, just trigger rtcwake in 'no' mode (wake up only, no shutdown)
-- If AC returns, no shutdown
+## Limitations
+- Does not work on batteryless devices (like most desktops or standard servers).
+- Requires Linux with systemd, `upower`, and RTC wake support.
