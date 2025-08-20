@@ -1,0 +1,11 @@
+[Unit]
+Description=WakeMyPotata: Restart the system after power outages
+
+[Timer]
+Unit=wmp.service
+OnBootSec=0
+OnCalendar=*-*-* *:00/01:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
