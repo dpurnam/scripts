@@ -7,3 +7,6 @@
     
 - Stalwart Mailserver's [Cloudflare TLSA Record Updater](https://github.com/dpurnam/scripts/tree/main/stalwart)
   - Set up or Update a TLSA record (used for MTA-STS and DANE features of Stalwart) on an associated Cloudflare Account
+
+- Device Availability Manager - [WakeMyPotata](https://github.com/dpurnam/scripts/tree/main/WakeMyPotata)
+  - Automatically boot up battery powered device after AC power outage
