@@ -89,7 +89,7 @@ chmod 744 "$BIN_DIR/wmp" "$BIN_DIR/wmp-run"
 # Patch ExecStart for timeout
 sed -i "s|^ExecStart=.*|ExecStart=$BIN_DIR/wmp-run $timeout|" "$SYSTEMD_DIR/wmp.service"
 # Add threshold comment after ExecStart
-sed -i "/^ExecStart=/a # threshold $BATTERY_THRESHOLD" "$SYSTEMD_DIR/wmp.service"
+sed -i "/^ExecStart=/a # threshold $BATTERY_THRESHOLD (Do not Modify this auto-generated line!)" "$SYSTEMD_DIR/wmp.service"
 
 systemctl daemon-reload
 systemctl enable wmp.timer
