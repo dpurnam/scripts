@@ -21,7 +21,7 @@ echo -e "${BOLD}===============================${NC}"
 echo ""
 
 # User input to capture Timeout
-read -p "$(echo -e "Enter amount of ${BOLD}time (in seconds)${NC} to wake up the device ${BOLD}after a blackout${NC}. ${YELLOW}or leave empty to use the default 600 seconds!${NC} : ")" timeout < /dev/tty
+read -p "$(echo -e "Enter amount of ${BOLD}time (in seconds)${NC} to wake up the device ${BOLD}after a blackout${NC}.\n${YELLOW}or leave empty to use the default 600 seconds!${NC} : ")" timeout < /dev/tty
 # Set/Verify Timeout Value
 if [[ -z "$timeout" ]]; then
     timeout=600
@@ -37,7 +37,7 @@ echo ""
 read -p "$(echo -e "Is this device powered by a ${BOLD}bulit-in battery${NC}? ${YELLOW}${BOLD}(y/N)${NC}: ")" confirm_battery_powered_device < /dev/tty
 echo ""
 if [[ "${confirm_battery_powered_device}" =~ ^[Yy]$ ]]; then
-    read -p "$(echo -e "Enter battery level threshold (${BOLD}between 10-50%${NC}) to wake up the device ${BOLD}after a blackout${NC}. ${YELLOW}or leave empty to use the default value of 10%!${NC} : ")" threshold < /dev/tty
+    read -p "$(echo -e "Enter battery level threshold (${BOLD}between 10-50%${NC}) to wake up the device ${BOLD}after a blackout${NC}.\n${YELLOW}or leave empty to use the default value of 10%!${NC} : ")" threshold < /dev/tty
     echo -e "${YELLOW}${BOLD}Please Note:${NC} This setting will be ignored if upower tool ${BOLD}does not${NC} detect a built-in battery!"
     echo ""
     # Set/Verify Threshold Value
@@ -45,7 +45,7 @@ if [[ "${confirm_battery_powered_device}" =~ ^[Yy]$ ]]; then
         threshold=10
     fi
     if [[ ! "$threshold" =~ ^[0-9]+$ ]] || (( threshold < 10 || threshold > 50 )); then
-        echo -e "${RED}Invalid input, please enter a positive integer ${BOLD}between 10 and 50${NC}${RED}! Aborting...${NC}"
+        echo -e "${RED}Invalid input, please enter a positive integer ${BOLD}between 10 and 50${NC}${RED}!\nAborting...${NC}"
         exit 1
         echo ""
     fi
@@ -56,7 +56,7 @@ BATTERY_THRESHOLD=$threshold
 
 # Check for upower and install if missing
 if ! command -v upower &>/dev/null; then
-    echo -e "${YELLOW}${BOLD}upower${NC} ${YELLOW}not found. Attempting to install (requires sudo/root)...${NC}"
+    echo -e "${YELLOW}${BOLD}upower${NC} ${YELLOW}not found.\nAttempting to install (requires sudo/root)...${NC}"
     if command -v apt-get &>/dev/null; then
         sudo apt-get update && sudo apt-get install -y upower
     elif command -v dnf &>/dev/null; then
@@ -66,7 +66,7 @@ if ! command -v upower &>/dev/null; then
     elif command -v pacman &>/dev/null; then
         sudo pacman -Sy upower
     else
-        echo -e "${RED}Could not detect package manager. Please install ${BOLD}upower${NC} ${RED}manually for battery support.${NC}"
+        echo -e "${RED}Could not detect package manager.\nPlease install ${BOLD}upower${NC} ${RED}manually for battery support.${NC}"
         exit 1
     fi
 fi
@@ -74,10 +74,10 @@ fi
 # Identify built-in battery using upower tool
 BAT_PATH=$(upower -e 2>/dev/null | grep -m1 BAT || true)
 if [ -z "$BAT_PATH" ]; then
-    echo -e "${RED}upower tool ${BOLD}could not detect${NC} ${RED}a built-in battery. ${BOLD}Disabling${NC} ${RED}Threshold Feature!${NC}"
+    echo -e "${RED}upower tool ${BOLD}could not detect${NC} ${RED}a built-in battery.\n${BOLD}Disabling${NC} ${RED}Threshold Feature!${NC}"
     threshold_feature=0
 else
-    echo -e "${GREEN}upower tool ${BOLD}successfully detected${NC} ${GREEN}a built-in battery. ${BOLD}Enabling${NC} ${GREEN}Threshold Feature!${NC}"
+    echo -e "${GREEN}upower tool ${BOLD}successfully detected${NC} ${GREEN}a built-in battery.\n${BOLD}Enabling${NC} ${GREEN}Threshold Feature!${NC}"
     threshold_feature=1
 fi
 
