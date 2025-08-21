@@ -7,6 +7,7 @@ set -euo pipefail
 # Default values
 TIMEOUT=600
 THRESHOLD=10
+ac_status=$(on_ac_power; echo $?)
 
 # Parse arguments from systemd ExecStart
 while [[ $# -gt 0 ]]; do
@@ -30,12 +31,15 @@ if [[ ! "$TIMEOUT" =~ ^[0-9]+$ ]]; then TIMEOUT=600; fi
 if [[ ! "$THRESHOLD" =~ ^[0-9]+$ ]] || (( THRESHOLD < 10 || THRESHOLD > 50 )); then THRESHOLD=10; fi
 
 # As a Precaution and to support non-battery-backed devices
-# Do not change the system's power state but simply set an RTC alarm and leaves the machine running
+# Do not change the system's power state but simply set an RTC alarm and leave the device running
 # When the timer expires, the system will execute the RTC wake-up action
 rtcwake -m no -s "$TIMEOUT"
-
+echo "WakeMyPotata: Setup the RTC Wake-up call based on your provided timeout input!"
+log "WakeMyPotata: Setup the RTC Wake-up call based on your provided timeout input!"
 log() { command -v systemd-cat &>/dev/null && echo "$*" | systemd-cat -t 'wmp' || echo "$*"; }
 
+## All the code below until end of file is applicable ONLY for battery-backed devices
+# Download/Install upower utiliy
 if ! command -v upower &>/dev/null; then
     log "upower not found. Attempting to install."
     if command -v apt-get &>/dev/null; then
@@ -52,50 +56,57 @@ if ! command -v upower &>/dev/null; then
     fi
 fi
 
-BAT_PATH=$(upower -e 2>/dev/null | grep -m1 BAT || true)
-if [ -z "$BAT_PATH" ]; then
-    log "No battery detected. WakeMyPotata only works with devices that have a battery. Exiting."
-    exit 1
-fi
-
-battery_percentage=$(upower -i "$BAT_PATH" 2>/dev/null | awk '/percentage:/ {gsub(/%/, "", $2); print $2}')
-if [ -z "$battery_percentage" ]; then
-    battery_percentage=100
-    log "Could not determine battery level, assuming 100%."
-fi
-
+# Capture current AC power status; 0 = On AC Power; non-Zero value = On Battery
 ac_status=$(on_ac_power; echo $?)
 
-if [ "$ac_status" -ne 0 ]; then
-    if [ "$battery_percentage" -le "$THRESHOLD" ]; then
-        wall_msg="WakeMyPotata: Emergency shutdown! AC lost, battery at ${battery_percentage}% (≤ ${THRESHOLD}%).\nService will try to restart in $TIMEOUT seconds."
-        echo -e "$wall_msg" | wall
-        log "$wall_msg"
-        if command -v mdadm &>/dev/null; then
-            mdadm --detail --scan | while read -r line; do
-                raid_dev=$(echo "$line" | awk '{print $2}' | cut -d'=' -f1 | tr -d '[]')
-                if ! mdadm --detail "$raid_dev" &>/dev/null; then continue; fi
-                disks=$(mdadm --detail "$raid_dev" 2>/dev/null | awk '/active sync/ && $0 !~ /spare/ {print $NF}' | sort -u)
-                mount_point=$(findmnt -n -o TARGET "$raid_dev" 2>/dev/null)
-                if [ -n "$mount_point" ]; then
-                    log "Killing processes on $mount_point"
-                    fuser -km "$mount_point" && log "Processes killed on $mount_point"
-                    log "Unmounting $mount_point"
-                    umount -f "$mount_point" || log "Failed to force unmount $mount_point"
-                fi
-                log "Stopping RAID device $raid_dev"
-                mdadm --stop "$raid_dev" || log "Failed to stop $raid_dev"
-                for disk in $disks; do
-                    log "Powering off disk $disk"
-                    udisksctl power-off -b "$disk" || log "Failed to power-off $disk"
-                done
-            done
-        fi
-        log "Shutting down NOW! Scheduled boot in $TIMEOUT s"
-        rtcwake -m off -s "$TIMEOUT"
-    else
-        log "AC power lost, but current battery level > $THRESHOLD% ($battery_percentage%). No emergency shutdown."
-    fi
+# Identify Battery Path using upower tool
+BAT_PATH=$(upower -e 2>/dev/null | grep -m1 BAT || true)
+
+if [ -z "$BAT_PATH" ]; then
+    log "Although No battery detected, WakeMyPotata has already setup the RTC Wake-up Alarm based on your provided timeout input."
 else
-    log "AC power OK. No action required."
+    battery_percentage=$(upower -i "$BAT_PATH" 2>/dev/null | awk '/percentage:/ {gsub(/%/, "", $2); print $2}')
+    if [ -z "$battery_percentage" ]; then
+        battery_percentage=100
+        log "Could not determine battery level, assuming 100%."
+    fi
+
+    if [ "$ac_status" -ne 0 ]; then
+        if [ "$battery_percentage" -le "$THRESHOLD" ]; then
+            wall_msg="WakeMyPotata: Emergency shutdown! AC lost, battery at ${battery_percentage}% (≤ ${THRESHOLD}%).\nService will try to restart in $TIMEOUT seconds."
+            echo -e "$wall_msg" | wall
+            log "$wall_msg"
+            if command -v mdadm &>/dev/null; then
+                mdadm --detail --scan | while read -r line; do
+                    raid_dev=$(echo "$line" | awk '{print $2}' | cut -d'=' -f1 | tr -d '[]')
+                    if ! mdadm --detail "$raid_dev" &>/dev/null; then continue; fi
+                    disks=$(mdadm --detail "$raid_dev" 2>/dev/null | awk '/active sync/ && $0 !~ /spare/ {print $NF}' | sort -u)
+                    mount_point=$(findmnt -n -o TARGET "$raid_dev" 2>/dev/null)
+                    if [ -n "$mount_point" ]; then
+                        log "Killing processes on $mount_point"
+                        fuser -km "$mount_point" && log "Processes killed on $mount_point"
+                        log "Unmounting $mount_point"
+                        umount -f "$mount_point" || log "Failed to force unmount $mount_point"
+                    fi
+                    log "Stopping RAID device $raid_dev"
+                    mdadm --stop "$raid_dev" || log "Failed to stop $raid_dev"
+                    for disk in $disks; do
+                        log "Powering off disk $disk"
+                        udisksctl power-off -b "$disk" || log "Failed to power-off $disk"
+                    done
+                done
+            fi
+            log "Shutting down NOW! Scheduled boot in $TIMEOUT s"
+            # Shut down the system completely (ACPI state S5) and then set an RTC alarm.
+            # When the timer expires, the RTC will power the machine back on from its fully powered-off state
+            echo "WakeMyPotata: Current battery level ($battery_percentage%) is already below threshold of $THRESHOLD%"
+            echo "WakeMyPotata: Initiating RTC Wake-up Alart Procedure" & sleep 10
+            echo "WakeMyPotata: Shutting down NOW! Scheduling automatic pwoer up in $TIMEOUT seconds!!" & sleep 10
+            rtcwake -m off -s "$TIMEOUT"
+        else
+            log "AC power lost, but current battery level > $THRESHOLD% ($battery_percentage%). No emergency shutdown."
+        fi
+    else
+        log "AC power OK. No action required."
+    fi
 fi
