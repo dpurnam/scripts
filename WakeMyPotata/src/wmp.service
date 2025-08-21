@@ -1,7 +1,6 @@
-# battery_powered_device = yes (DO NOT REMOVE this Auto-generated line)
 [Unit]
 Description=WakeMyPotata: Emergency RAID/system safe shutdown (battery-only)
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/sbin/wmp-run --threshold 10 --timeout 600
+ExecStart=/usr/local/sbin/wmp-run --timeout 600
