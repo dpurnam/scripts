@@ -7,7 +7,6 @@ set -euo pipefail
 # Default values
 TIMEOUT=600
 THRESHOLD=10
-ac_status=$(on_ac_power; echo $?)
 
 # Parse arguments from systemd ExecStart
 while [[ $# -gt 0 ]]; do
@@ -38,7 +37,6 @@ echo "WakeMyPotata: Setup the RTC Wake-up call based on your provided timeout in
 log "WakeMyPotata: Setup the RTC Wake-up call based on your provided timeout input!"
 log() { command -v systemd-cat &>/dev/null && echo "$*" | systemd-cat -t 'wmp' || echo "$*"; }
 
-## All the code below until end of file is applicable ONLY for battery-backed devices
 # Download/Install upower utiliy
 if ! command -v upower &>/dev/null; then
     log "upower not found. Attempting to install."
@@ -65,6 +63,7 @@ BAT_PATH=$(upower -e 2>/dev/null | grep -m1 BAT || true)
 if [ -z "$BAT_PATH" ]; then
     log "Although No battery detected, WakeMyPotata has already setup the RTC Wake-up Alarm based on your provided timeout input."
 else
+    # Get Current Battery Level or else assume it to be 100%
     battery_percentage=$(upower -i "$BAT_PATH" 2>/dev/null | awk '/percentage:/ {gsub(/%/, "", $2); print $2}')
     if [ -z "$battery_percentage" ]; then
         battery_percentage=100
