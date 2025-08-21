@@ -1,3 +1,4 @@
+# battery_powered_device = yes (DO NOT REMOVE this Auto-generated line)
 [Unit]
 Description=WakeMyPotata: Emergency RAID/system safe shutdown (battery-only)
 
