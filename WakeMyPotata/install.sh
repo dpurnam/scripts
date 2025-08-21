@@ -16,7 +16,7 @@ NC='\e[0m' # No Color
 
 echo ""
 echo -e "${BOLD}===============================${NC}"
-echo -e "${GREEN}${BOLD}WakeMyPotata Service${NC} ${GREEN}installer!${NC}"
+echo -e "${GREEN}${BOLD}WakeMyPotata${NC} ${GREEN}Service Installer!${NC}"
 echo -e "${BOLD}===============================${NC}"
 echo ""
 
