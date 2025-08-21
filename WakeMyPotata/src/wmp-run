@@ -29,6 +29,11 @@ done
 if [[ ! "$TIMEOUT" =~ ^[0-9]+$ ]]; then TIMEOUT=600; fi
 if [[ ! "$THRESHOLD" =~ ^[0-9]+$ ]] || (( THRESHOLD < 10 || THRESHOLD > 50 )); then THRESHOLD=10; fi
 
+# As a Precaution and to support non-battery-backed devices
+# Do not change the system's power state but simply set an RTC alarm and leaves the machine running
+# When the timer expires, the system will execute the RTC wake-up action
+rtcwake -m no -s "$TIMEOUT"
+
 log() { command -v systemd-cat &>/dev/null && echo "$*" | systemd-cat -t 'wmp' || echo "$*"; }
 
 if ! command -v upower &>/dev/null; then
@@ -89,8 +94,7 @@ if [ "$ac_status" -ne 0 ]; then
         log "Shutting down NOW! Scheduled boot in $TIMEOUT s"
         rtcwake -m off -s "$TIMEOUT"
     else
-        log "AC lost, but battery > $THRESHOLD% ($battery_percentage%). No emergency shutdown."
-        rtcwake -m no -s "$TIMEOUT"
+        log "AC power lost, but current battery level > $THRESHOLD% ($battery_percentage%). No emergency shutdown."
     fi
 else
     log "AC power OK. No action required."
