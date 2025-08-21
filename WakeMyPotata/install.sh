@@ -14,34 +14,44 @@ YELLOW='\e[93m'
 BOLD='\e[1m'
 NC='\e[0m' # No Color
 
-echo -e "${BOLD}======================================${NC}"
-echo -e "${GREEN}Welcome to the ${BOLD}WakeMyPotata${NC} ${GREEN}installer!${NC}"
-echo -e "${BOLD}======================================${NC}"
 echo ""
-echo -e "${YELLOW}Enter amount of time (in seconds) to wake up the device ${BOLD}after a blackout${NC} ${YELLOW}or leave empty to use the default 600 seconds!${NC}"
-read -p "  ==> " timeout < /dev/tty
-echo ""
-echo -e "${YELLOW}Enter battery level threshold (in % between 10-50) to wake up the device ${BOLD}after a blackout${NC} ${YELLOW}or leave empty to use the default value of 10%!${NC}"
-read -p "  ==> " threshold < /dev/tty
+echo -e "${BOLD}===============================${NC}"
+echo -e "${GREEN}${BOLD}WakeMyPotata Service${NC} ${GREEN}installer!${NC}"
+echo -e "${BOLD}===============================${NC}"
 echo ""
 
-# Timeout
+# User input to capture Timeout
+read -p "$(echo -e "Enter amount of ${BOLD}time (in seconds)${NC} to wake up the device ${BOLD}after a blackout${NC}. ${YELLOW}or leave empty to use the default 600 seconds!${NC} : ")" timeout < /dev/tty
+# Set/Verify Timeout Value
 if [[ -z "$timeout" ]]; then
     timeout=600
 fi
 if [[ ! "$timeout" =~ ^[0-9]+$ ]]; then
     echo -e "${BOLD}${RED}Invalid input, please enter a positive integer! Aborting...${NC}"
     exit 1
+    echo ""
 fi
+echo ""
 
-# Threshold
-if [[ -z "$threshold" ]]; then
-    threshold=10
+# User input to confirm Battery-powered device or not
+read -p "$(echo -e "Is this device powered by a ${BOLD}bulit-in battery${NC}? ${YELLOW}${BOLD}(y/N)${NC}: ")" confirm_battery_powered_device < /dev/tty
+echo ""
+if [[ "${confirm_battery_powered_device}" =~ ^[Yy]$ ]]; then
+    read -p "$(echo -e "${YELLOW}Enter battery level threshold (between 10-50%) to wake up the device ${BOLD}after a blackout${NC}. ${YELLOW}or leave empty to use the default value of 10%!${NC} : ")" threshold < /dev/tty
+    echo -e "Please Note: This setting is ignored if upower tool does ${BOLD}not detect a built-in battery${NC}!"
+    echo ""
+    # Set/Verify Threshold Value
+    if [[ -z "$threshold" ]]; then
+        threshold=10
+    fi
+    if [[ ! "$threshold" =~ ^[0-9]+$ ]] || (( threshold < 10 || threshold > 50 )); then
+        echo -e "${BOLD}${RED}Invalid input, please enter a positive integer between 10 and 50! Aborting...${NC}"
+        exit 1
+        echo ""
+    fi
 fi
-if [[ ! "$threshold" =~ ^[0-9]+$ ]] || (( threshold < 10 || threshold > 50 )); then
-    echo -e "${BOLD}${RED}Invalid input, please enter a positive integer between 10 and 50! Aborting...${NC}"
-    exit 1
-fi
+echo ""
+
 BATTERY_THRESHOLD=$threshold
 
 # Check for upower and install if missing
@@ -61,15 +71,22 @@ if ! command -v upower &>/dev/null; then
     fi
 fi
 
-# ABORT install if no battery detected
+# Identify battery_powered_device or not
 BAT_PATH=$(upower -e 2>/dev/null | grep -m1 BAT || true)
 if [ -z "$BAT_PATH" ]; then
-    echo -e "${RED}${BOLD}ERROR:${NC} ${RED}No battery detected. ${BOLD}WakeMyPotata${NC} ${RED}only works on devices with a battery. Aborting install.${NC}"
-    exit 1
+    battery_powered_device=0
+    echo -e "${RED}upower tool ${BOLD}could not detect${NC} ${RED}a built-in battery. ${BOLD}Disabling${NC} ${RED}Threshold Feature!${NC}"
+    threshold_feature=0
+else
+    battery_powered_device=1
+    echo -e "${GREEN}upower tool ${BOLD}successfully detected${NC} ${GREEN}a built-in battery. ${BOLD}Enabling${NC} ${GREEN}Threshold Feature!${NC}"
+    threshold_feature=1
 fi
 
+# Download components from GITHUB viz. wmp, wmp-run, wmp.service and wmp.timer
+echo ""
 echo -e "${YELLOW}Downloading and installing WakeMyPotata files...${NC}"
-
+echo ""
 # Download systemd units (with error handling)
 curl -sSL "$REPO_URL/src/wmp.timer" -o "$SYSTEMD_DIR/wmp.timer" || { echo "Failed to download wmp.timer"; exit 1; }
 curl -sSL "$REPO_URL/src/wmp.service" -o "$SYSTEMD_DIR/wmp.service" || { echo "Failed to download wmp.service"; exit 1; }
@@ -81,11 +98,16 @@ curl -sSL "$REPO_URL/src/wmp-run" -o "$BIN_DIR/wmp-run" || { echo "Failed to dow
 chmod 744 "$BIN_DIR/wmp" "$BIN_DIR/wmp-run"
 
 # Patch Service file's ExecStart to pass args
-sed -i "s|^ExecStart=.*|ExecStart=$BIN_DIR/wmp-run --threshold $BATTERY_THRESHOLD --timeout $timeout|" "$SYSTEMD_DIR/wmp.service"
+if [[ $threshold_feature -eq 1 ]]
+    sed -i "s|^ExecStart=.*|ExecStart=$BIN_DIR/wmp-run --threshold $BATTERY_THRESHOLD --timeout $timeout|" "$SYSTEMD_DIR/wmp.service"
+elif [[ $threshold_feature -eq 0 ]]
+    sed -i "s|^ExecStart=.*|ExecStart=$BIN_DIR/wmp-run --timeout $timeout|" "$SYSTEMD_DIR/wmp.service"
+fi
 
 systemctl daemon-reload
 systemctl enable wmp.timer
 systemctl start wmp.timer
 echo ""
-echo -e "${GREEN}${BOLD}WakeMyPotata${NC} ${GREEN}installed successfully!${NC}"
+echo -e "${GREEN}${BOLD}WakeMyPotata Service & Timer${NC} ${GREEN}installed successfully!${NC}"
 echo -e "${YELLOW}Use '${BOLD}${YELLOW}sudo wmp help${NC}' ${YELLOW}for info on user commands.${NC}"
+echo ""
