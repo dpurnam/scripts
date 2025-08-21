@@ -38,14 +38,14 @@ read -p "$(echo -e "Is this device powered by a ${BOLD}bulit-in battery${NC}? ${
 echo ""
 if [[ "${confirm_battery_powered_device}" =~ ^[Yy]$ ]]; then
     read -p "$(echo -e "${YELLOW}Enter battery level threshold (between 10-50%) to wake up the device ${BOLD}after a blackout${NC}. ${YELLOW}or leave empty to use the default value of 10%!${NC} : ")" threshold < /dev/tty
-    echo -e "Please Note: This setting is ignored if upower tool does ${BOLD}not detect a built-in battery${NC}!"
+    echo -e "Please Note: This setting will be ignored if upower tool does ${BOLD}not detect a built-in battery${NC}!"
     echo ""
     # Set/Verify Threshold Value
     if [[ -z "$threshold" ]]; then
         threshold=10
     fi
     if [[ ! "$threshold" =~ ^[0-9]+$ ]] || (( threshold < 10 || threshold > 50 )); then
-        echo -e "${BOLD}${RED}Invalid input, please enter a positive integer between 10 and 50! Aborting...${NC}"
+        echo -e "${RED}Invalid input, please enter a positive integer ${BOLD}between 10 and 50${NC}${RED}! Aborting...${NC}"
         exit 1
         echo ""
     fi
@@ -109,5 +109,5 @@ systemctl enable wmp.timer
 systemctl start wmp.timer
 echo ""
 echo -e "${GREEN}${BOLD}WakeMyPotata Service & Timer${NC} ${GREEN}installed successfully!${NC}"
-echo -e "${YELLOW}Use '${BOLD}${YELLOW}sudo wmp help${NC}' ${YELLOW}for info on user commands.${NC}"
+echo -e "${YELLOW}Use '${BOLD}sudo wmp help${NC}' ${YELLOW}for info on user commands.${NC}"
 echo ""
