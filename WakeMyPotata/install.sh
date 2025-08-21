@@ -71,21 +71,19 @@ if ! command -v upower &>/dev/null; then
     fi
 fi
 
-# Identify battery_powered_device or not
+# Identify built-in battery using upower tool
 BAT_PATH=$(upower -e 2>/dev/null | grep -m1 BAT || true)
 if [ -z "$BAT_PATH" ]; then
-    battery_powered_device=0
     echo -e "${RED}upower tool ${BOLD}could not detect${NC} ${RED}a built-in battery. ${BOLD}Disabling${NC} ${RED}Threshold Feature!${NC}"
     threshold_feature=0
 else
-    battery_powered_device=1
     echo -e "${GREEN}upower tool ${BOLD}successfully detected${NC} ${GREEN}a built-in battery. ${BOLD}Enabling${NC} ${GREEN}Threshold Feature!${NC}"
     threshold_feature=1
 fi
 
 # Download components from GITHUB viz. wmp, wmp-run, wmp.service and wmp.timer
 echo ""
-echo -e "${YELLOW}Downloading and installing WakeMyPotata files...${NC}"
+echo -e "${YELLOW}Downloading and installing WakeMyPotata components...${NC}"
 echo ""
 # Download systemd units (with error handling)
 curl -sSL "$REPO_URL/src/wmp.timer" -o "$SYSTEMD_DIR/wmp.timer" || { echo "Failed to download wmp.timer"; exit 1; }
@@ -99,7 +97,7 @@ chmod 744 "$BIN_DIR/wmp" "$BIN_DIR/wmp-run"
 
 # Patch Service file's ExecStart to pass args
 if [[ $threshold_feature -eq 1 ]]
-    sed -i "s|^ExecStart=.*|ExecStart=$BIN_DIR/wmp-run --threshold $BATTERY_THRESHOLD --timeout $timeout|" "$SYSTEMD_DIR/wmp.service"
+    sed -i "s|^ExecStart=.*|ExecStart=$BIN_DIR/wmp-run --timeout $timeout --threshold $BATTERY_THRESHOLD|" "$SYSTEMD_DIR/wmp.service"
 elif [[ $threshold_feature -eq 0 ]]
     sed -i "s|^ExecStart=.*|ExecStart=$BIN_DIR/wmp-run --timeout $timeout|" "$SYSTEMD_DIR/wmp.service"
 fi
