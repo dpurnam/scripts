@@ -9,4 +9,4 @@
   - Set up or Update a TLSA record (used for MTA-STS and DANE features of Stalwart) on an associated Cloudflare Account
 
 - Device Availability Manager - [WakeMyPotata](https://github.com/dpurnam/scripts/tree/main/WakeMyPotata)
-  - Automatically boot up battery powered device after AC power outage
+  - Automatically boot up a device after AC power outage (now supports both battery-powered as well as battery-less devices)
