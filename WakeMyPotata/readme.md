@@ -1,7 +1,7 @@
 WakeMyPotata
 =============
 
-**WakeMyPotata** is a Linux tool designed to protect your data and RAID systems from sudden AC power loss on devices with a battery (like laptops or battery-backed servers). It monitors your device battery and AC power status, and if AC power is lost and the device battery drops below a set threshold, it safely shuts down your system and schedules an automatic restart after a specified time.
+**WakeMyPotata** is a Linux tool designed to protect your data and RAID systems from sudden AC power loss on devices with a battery (like laptops or battery-backed servers). It monitors your device battery and AC power status, and if AC power is lost and the device battery drops below a set threshold, it safely suspends the device to RAM (**ACPI S3 state**) and schedules an automatic restart after a specified time.
 
 **Additionally, it now supports** devices without a built-in battery but with limited functionality viz. - schedule an automatic power-up after a specified timeout period, when an AC power outage abruptly shuts down the device
 
