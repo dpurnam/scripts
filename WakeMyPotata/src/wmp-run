@@ -33,9 +33,10 @@ if [[ ! "$THRESHOLD" =~ ^[0-9]+$ ]] || (( THRESHOLD < 10 || THRESHOLD > 50 )); t
 # Do not change the system's power state but simply set an RTC alarm and leave the device running
 # When the timer expires, the system will execute the RTC wake-up action
 rtcwake -m no -s "$TIMEOUT"
+
+log() { command -v systemd-cat &>/dev/null && echo "$*" | systemd-cat -t 'wmp' || echo "$*"; }
 echo "WakeMyPotata: Setup the RTC Wake-up call based on your provided timeout input!"
 log "WakeMyPotata: Setup the RTC Wake-up call based on your provided timeout input!"
-log() { command -v systemd-cat &>/dev/null && echo "$*" | systemd-cat -t 'wmp' || echo "$*"; }
 
 # Download/Install upower utiliy
 if ! command -v upower &>/dev/null; then
