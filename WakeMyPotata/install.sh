@@ -96,9 +96,9 @@ curl -sSL "$REPO_URL/src/wmp-run" -o "$BIN_DIR/wmp-run" || { echo "Failed to dow
 chmod 744 "$BIN_DIR/wmp" "$BIN_DIR/wmp-run"
 
 # Patch Service file's ExecStart to pass args
-if [[ $threshold_feature -eq 1 ]]
+if [[ $threshold_feature -eq 1 ]]; then
     sed -i "s|^ExecStart=.*|ExecStart=$BIN_DIR/wmp-run --timeout $timeout --threshold $BATTERY_THRESHOLD|" "$SYSTEMD_DIR/wmp.service"
-elif [[ $threshold_feature -eq 0 ]]
+elif [[ $threshold_feature -eq 0 ]]; then
     sed -i "s|^ExecStart=.*|ExecStart=$BIN_DIR/wmp-run --timeout $timeout|" "$SYSTEMD_DIR/wmp.service"
 fi
 
