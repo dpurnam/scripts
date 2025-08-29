@@ -6,7 +6,7 @@
 # Create a local bash script file Simply execute the command below or create a local bash script to do so
 # curl -sL https://raw.githubusercontent.com/dpurnam/scripts/main/sannyas.wiki/media-downloader.sh | bash
 # curl -sL https://raw.githubusercontent.com/dpurnam/scripts/main/sannyas.wiki/media-downloader.sh | bash -s "https://www.sannyas.wiki/index.php?title=Eagle%27s_Flight"
-# curl -sL https://raw.githubusercontent.com/dpurnam/scripts/main/sannyas.wiki/media-downloader.sh | bash -s "--file" "URLs.txt"
+# curl -sL https://raw.githubusercontent.com/dpurnam/scripts/main/sannyas.wiki/media-downloader.sh | bash -s -- --file URLs.txt
 
 
 # ANSI color codes
