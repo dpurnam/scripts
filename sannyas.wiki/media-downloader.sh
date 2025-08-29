@@ -93,6 +93,7 @@ for page_url in "${page_urls[@]}"; do
 
     # Process Audio Files
     if [ -s direct_audio_urls.txt ]; then
+        echo ""
         echo "Found the following direct audio URLs to download:"
         cat direct_audio_urls.txt
         echo -e "${BOLD}-------------------------------------${NC}"
@@ -111,6 +112,7 @@ for page_url in "${page_urls[@]}"; do
 
     # Process Image Files
     if [ -s image_filenames.txt ]; then
+        echo ""
         echo -e "${YELLOW}Found the following image file arguments to process${NC}:"
         cat image_filenames.txt
         echo -e "${BOLD}-------------------------------------${NC}"
@@ -149,18 +151,18 @@ for page_url in "${page_urls[@]}"; do
 
     # Final check for files and clean up
     if [ ! -s direct_audio_urls.txt ] && [ ! -s image_filenames.txt ]; then
-        echo -e "${RED}No files or images found on the page${NC}."
+        echo -e "${RED}No files or images found on the page for ${BOLD}$dir_name${NC}."
         rmdir "$dir_name" 2>/dev/null
         exit 0
     elif [ -s direct_audio_urls.txt ] && [ ! -s image_filenames.txt ]; then
         echo -e "${BOLD}-------------------------------------${NC}"
-        echo -e "${GREEN}Download process complete! All audio files were downloaded successfully.${NC}${YELLOW}No image files found!${NC}"
+        echo -e "${GREEN}Download process complete! All audio files were downloaded successfully for ${BOLD}$dir_name.${NC}${YELLOW}No image files found!${NC}"
     elif [ ! -s direct_audio_urls.txt ] && [ -s image_filenames.txt ]; then
         echo -e "${BOLD}-------------------------------------${NC}"
-        echo -e "${GREEN}Download process complete! All image files were downloaded successfully.${NC}${YELLOW}No audio files found!${NC}"
+        echo -e "${GREEN}Download process complete! All image files were downloaded successfully for ${BOLD}$dir_name.${NC}${YELLOW}No audio files found!${NC}"
     else
         echo -e "${BOLD}-------------------------------------${NC}"
-        echo -e "${GREEN}Download process complete! All files (audio and images) were downloaded successfully.${NC}"
+        echo -e "${GREEN}Download process complete! All files (audio and images) were downloaded successfully for ${BOLD}$dir_name.${NC}"
     fi
     echo ""
 done
