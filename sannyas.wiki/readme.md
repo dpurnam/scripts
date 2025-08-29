@@ -18,5 +18,5 @@ curl -sL https://raw.githubusercontent.com/dpurnam/scripts/main/sannyas.wiki/med
 ```
 OR use this to provide a file with multiple page URL's (one per line) from sannyas.wiki
 ```bash
-curl -sL https://raw.githubusercontent.com/dpurnam/scripts/main/sannyas.wiki/media-downloader.sh | bash -s "--file" "URLs.txt"
+curl -sL https://raw.githubusercontent.com/dpurnam/scripts/main/sannyas.wiki/media-downloader.sh | bash -s -- --file URLs.txt
 ```
