@@ -6,7 +6,7 @@ Downloads media (audio/image files) from pre-defined or user provided page(s) fr
 
 **Usage**:
 
-Create a local bash script file Simply execute the command below or create a local bash script to do so.
+Simply execute the command below or create a local bash script to do so.
 
 Use this to enter a sannyas.wiki page manually at a prompt
 ```bash
