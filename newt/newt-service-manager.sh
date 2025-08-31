@@ -91,7 +91,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
           exit 0 # Exit cleanly if the user doesn't confirm
         else
           echo ""
-          echo -e "${YELLOW}Initiating Newt Service Re-installation...${NC}"
+          echo -e "${YELLOW}🚀 Initiating Newt Service Re-installation...${NC}"
 
           # Capture default/user provided NEWT ID, SECRET and Pangolin Endpoint
           NEWT_ID=$(prompt_with_default "Provide Newt Client ID." "$NEWT_ID")
@@ -122,14 +122,14 @@ if [[ -f "${SERVICE_FILE}" ]]; then
       getent group newt >/dev/null && groupdel newt
       rm -rf "${NEWT_LIB_PATH}"
       rm "$NEWT_BIN_PATH"
-      echo -e "${BOLD}${YELLOW}Removed Newt Service user, group and service. Goodbye!${NC}"
+      echo -e "${BOLD}${YELLOW}Removed Newt Service user, group and service. 👋 Goodbye!${NC}"
       exit 0
   fi
   echo ""
 # --- or Capture User Input for First Time Service Installation ---
 else
   echo ""
-  echo -e "${YELLOW}Initiating Newt Service Installation...${NC}"
+  echo -e "${YELLOW}🚀 Initiating Newt Service Installation...${NC}"
   read -p "$(echo -e "Provide Newt ${BOLD}Client ID${NC}: ")" NEWT_ID < /dev/tty
   read -p "$(echo -e "Provide Newt ${BOLD}Client Secret${NC}: ")" NEWT_SECRET < /dev/tty
   read -p "$(echo -e "Provide ${BOLD}Pangolin Endpoint${NC} (ex. ${ITALIC}https://pangolin.yourdomain.com${NC}): ")" PANGOLIN_ENDPOINT < /dev/tty
@@ -144,7 +144,7 @@ fi
 
 # --- Newt Binary Download and Update Section ---
 echo ""
-echo -e "${BOLD}${YELLOW}Checking for the latest Newt binary...${NC}"
+echo -e "${BOLD}${YELLOW}🔍 Checking for the latest Newt binary...${NC}"
 
 # Detect system architecture
 ARCH=$(dpkg --print-architecture) # Common command on Debian/Ubuntu-based systems
@@ -163,23 +163,23 @@ case "$ARCH" in
     NEWT_ARCH="arm32v6"
     ;;
   *)
-    echo -e "${BOLD}${RED}Error: Unsupported architecture: $ARCH${NC}"
+    echo -e "${BOLD}${RED}❌ Error: Unsupported architecture: $ARCH${NC}"
     echo -e "${RED}This script supports ONLY amd64, arm64, arm32 and arm32v6.${NC}"
     exit 1
     ;;
 esac
 echo ""
-echo -e "Detected architecture: ${YELLOW}$ARCH ($NEWT_ARCH)${NC}"
+echo -e "🔍 Detected architecture: ${YELLOW}$ARCH ($NEWT_ARCH)${NC}"
 
 # Get the latest release tag from GitHub API
 # Use -s for silent, -L for follow redirects
 LATEST_RELEASE_TAG=$(curl -sL "https://api.github.com/repos/fosrl/newt/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 RELEASE_URL="https://github.com/fosrl/newt/releases/download/${LATEST_RELEASE_TAG}/newt_linux_${NEWT_ARCH}"
 if [ -z "${RELEASE_URL}" ]; then
-    echo -e "${RED}Error: Could not fetch Newt release url from GitHub.${NC}"
+    echo -e "${RED}❌ Error: Could not fetch Newt release url from GitHub.${NC}"
     exit 1 # Exit if we can't get the latest version tag
 else
-    echo -e "New release url found: ${YELLOW}$RELEASE_URL${NC}"
+    echo -e "🔍 New release url found: ${YELLOW}$RELEASE_URL${NC}"
     # Construct the download URL using the found tag name and detected architecture
     #DOWNLOAD_URL="https://github.com/fosrl/newt/releases/download/${LATEST_RELEASE_URL}/newt_linux_${NEWT_ARCH}"
     DOWNLOAD_URL="${RELEASE_URL}"
@@ -188,18 +188,18 @@ else
     # if [ -f "$NEWT_BIN_PATH" ] && "$NEWT_BIN_PATH" --version 2>/dev/null | grep -q "$LATEST_RELEASE_URL"; then
     #   echo "Newt binary is already the latest version ($LATEST_RELEASE_URL). Skipping download."
     # else
-    echo -e "Attempting to download ${YELLOW}Newt binary for ${ARCH}${NC}..."
+    echo -e "⬇ Attempting to download ${YELLOW}Newt binary for ${ARCH}${NC}..."
     if ! wget -q -O /tmp/newt_temp -L "$DOWNLOAD_URL"; then
-      echo -e "${RED}Error: Failed to download Newt binary from $DOWNLOAD_URL.${NC}"
+      echo -e "${RED}❌ Error: Failed to download Newt binary from $DOWNLOAD_URL.${NC}"
       echo -e "${YELLOW}Please check the URL and your network connection.${NC}"
       exit 1
     fi
-    echo -e "=== ${GREEN}Download Complete${NC} ==="
+    echo -e "=== ${GREEN}✅ Download Complete${NC} ==="
     echo ""
-    echo -e "Installing ${GREEN}Newt binary${NC} to ${GREEN}$NEWT_BIN_PATH${NC}"
+    echo -e "Installing ${GREEN}Newt binary${NC} to 📂 ${GREEN}$NEWT_BIN_PATH${NC}"
     chmod +x /tmp/newt_temp
     mv /tmp/newt_temp "$NEWT_BIN_PATH"
-    echo -e "${GREEN}Newt binary${NC} installed successfully."
+    echo -e "✅ ${GREEN}Newt binary${NC} installed successfully."
     echo ""
 fi
 
@@ -303,7 +303,7 @@ fi
 echo "$SERVICE_CONTENT" | tee "$SERVICE_FILE" > /dev/null
 echo -e "===> Systemd service file (re)created at ${BOLD}${GREEN}$SERVICE_FILE${NC} with provided NEWT VPN Client details. <==="
 echo ""
-echo -e "${BOLD}${YELLOW}Enabling/Starting the service after daemon-reload...${NC}"
+echo -e "${BOLD}${YELLOW}🔧 Enabling/Starting the service after daemon-reload...${NC}"
 echo ""
 systemctl daemon-reload
 systemctl enable $SERVICE_NAME
@@ -311,7 +311,7 @@ systemctl start $SERVICE_NAME
 systemctl status $SERVICE_NAME
 echo ""
 echo -e "${BOLD}===========================================${NC}"
-echo -e "${BOLD}${GREEN}Newt VPN Client Service installed. Goodbye!${NC}"
+echo -e "${BOLD}${GREEN}Newt VPN Client Service installed. 👋 Goodbye!${NC}"
 echo -e "${BOLD}===========================================${NC}"
 echo ""
 exit 0
