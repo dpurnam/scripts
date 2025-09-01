@@ -180,4 +180,6 @@ main() {
 }
 
 # Call the main function with all script arguments
+echo -e "${BOLD}======================================== Sannyas.wiki Media Downloader ===============================================${NC}"
 main "$@"
+echo -e "${BOLD}======================================== Sannyas.wiki Media Downloader ===============================================${NC}"
