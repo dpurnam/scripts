@@ -40,9 +40,9 @@ download_audio_files() {
             echo "⬇️🎵 Downloading: $download_url"
             wget -q --show-progress -O "$dir_name/$filename" "$download_url"
             if [ $? -ne 0 ]; then
-                echo -e "Warning: Failed to download ${RED}${BOLD}$filename${NC}. Skipping..."
+                echo -e "Warning: Failed to download ${RED}$filename${NC}. Skipping..."
             else
-                echo -e "✅🎵 Successfully downloaded ${GREEN}${BOLD}$filename${NC}."
+                echo -e "✅🎵 Successfully downloaded ${GREEN}$filename${NC}."
             fi
         done < direct_audio_urls.txt
     fi
@@ -67,7 +67,7 @@ download_image_files() {
             actual_path=$(wget -q -O - "$browse_url" | grep -oE 'div class="fullMedia".*href="([^"]*images/[^"]*\.(jpg|jpeg|png|gif|pdf))"' | sed 's/.*href="//;s/"//')
 
             if [ -z "$actual_path" ]; then
-                echo -e "Warning: Could not find actual download path for ${RED}${BOLD}$filename${NC}. Skipping..."
+                echo -e "Warning: Could not find actual download path for ${RED}$filename${NC}. Skipping..."
                 continue
             fi
 
@@ -82,9 +82,9 @@ download_image_files() {
             # [cite_start]Download the file into the correct directory using wget[cite: 14].
             wget -q --show-progress -O "$dir_name/$filename_clean" "$download_url"
             if [ $? -ne 0 ]; then
-                echo -e "Warning: Failed to download ${RED}${BOLD}$filename_clean${NC}. Skipping..."
+                echo -e "Warning: Failed to download ${RED}$filename_clean${NC}. Skipping..."
             else
-                echo -e "✅🖼  Successfully downloaded ${GREEN}${BOLD}$filename_clean${NC}."
+                echo -e "✅🖼  Successfully downloaded ${GREEN}$filename_clean${NC}."
             fi
         done < image_filenames.txt
     fi
