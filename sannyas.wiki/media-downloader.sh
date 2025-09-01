@@ -30,18 +30,18 @@ download_audio_files() {
     local dir_name="$1"
     if [ -s direct_audio_urls.txt ]; then
         echo ""
-        echo "Found the following direct audio URLs to download:"
+        echo -e "🔍🎵 ${YELLOW}Found the following direct audio URLs to download${NC}:"
         cat direct_audio_urls.txt
         echo -e "${BOLD}-------------------------------------${NC}"
-        echo -e "${YELLOW}Starting audio downloads with wget...${NC}"
+        echo -e "${YELLOW}Starting 🎵 audio downloads with wget...${NC}"
         while IFS= read -r download_url; do
             filename=$(basename "$download_url" | sed 's/%20/ /g; s/%2C/,/g; s/%28/(/g; s/%29/)/g')
-            echo "Downloading: $download_url"
+            echo "⬇️🎵 Downloading: $download_url"
             wget -q --show-progress -O "$dir_name/$filename" "$download_url"
             if [ $? -ne 0 ]; then
                 echo -e "Warning: Failed to download ${RED}${BOLD}$filename${NC}. Skipping..."
             else
-                echo -e "Successfully downloaded ${GREEN}${BOLD}$filename${NC}."
+                echo -e "✅🎵 Successfully downloaded ${GREEN}${BOLD}$filename${NC}."
             fi
         done < direct_audio_urls.txt
     fi
@@ -52,14 +52,14 @@ download_image_files() {
     local dir_name="$1"
     if [ -s image_filenames.txt ]; then
         echo ""
-        echo -e "${YELLOW}Found the following image file arguments to process${NC}:"
+        echo -e "🔍 ${YELLOW}Found the following 🖼 image file arguments to process${NC}:"
         cat image_filenames.txt
         echo -e "${BOLD}-------------------------------------${NC}"
-        echo -e "${YELLOW}Starting image downloads with wget...${NC}"
+        echo -e "${YELLOW}Starting 🖼 image downloads with wget...${NC}"
         while IFS= read -r filename; do
             # [cite_start]Construct the Browse URL using the extracted filename, WITH the 'File:' prefix[cite: 9, 10, 11].
             browse_url="https://www.sannyas.wiki/index.php?title=${filename}"
-            echo -e "Processing browse URL: ${YELLOW}$browse_url${NC}"
+            echo -e "🔁 Processing browse URL: ${YELLOW}$browse_url${NC}"
 
             # [cite_start]Fetch the browse URL and extract the actual download URL[cite: 12, 13].
             actual_path=$(wget -q -O - "$browse_url" | grep -oE 'div class="fullMedia".*href="([^"]*images/[^"]*\.(jpg|jpeg|png|gif|pdf))"' | sed 's/.*href="//;s/"//')
@@ -75,14 +75,14 @@ download_image_files() {
             # Extract the clean filename from the actual download URL.
             filename_clean=$(basename "$download_url" | sed 's/%20/ /g; s/%2C/,/g')
 
-            echo "Downloading: $download_url"
+            echo "⬇️🖼 Downloading: $download_url"
 
             # [cite_start]Download the file into the correct directory using wget[cite: 14].
             wget -q --show-progress -O "$dir_name/$filename_clean" "$download_url"
             if [ $? -ne 0 ]; then
                 echo -e "Warning: Failed to download ${RED}${BOLD}$filename_clean${NC}. Skipping..."
             else
-                echo -e "Successfully downloaded ${GREEN}${BOLD}$filename_clean${NC}."
+                echo -e "✅🖼 Successfully downloaded ${GREEN}${BOLD}$filename_clean${NC}."
             fi
         done < image_filenames.txt
     fi
@@ -93,7 +93,7 @@ process_url() {
     local page_url="$1"
 
     echo ""
-    echo -e "${BOLD}Processing URL: ${YELLOW}$page_url${NC}"
+    echo -e "🔁 ${BOLD}Processing URL: ${YELLOW}$page_url${NC}"
 
     # [cite_start]Step 2: Extract the title for the directory name and create it[cite: 24, 25, 26].
     page_title=$(echo "$page_url" | sed 's/.*title=\([^&]*\).*/\1/' | sed 's/ /_/g')
@@ -101,11 +101,11 @@ process_url() {
 
     mkdir -p "$dir_name"
     if [ $? -ne 0 ]; then
-        echo "Error: Failed to create directory '$dir_name'."
+        echo -e "Error: Failed to create directory 📂 ${RED}'$dir_name'${NC}."
         exit 1
     fi
 
-    echo -e "Downloading files and images into directory: ${GREEN}${BOLD}$dir_name${NC}"
+    echo -e "⬇️🎵🖼 Downloading audio and image files into directory: 📂 ${GREEN}${BOLD}$dir_name${NC}"
 
     # [cite_start]Step 3: Fetch the main page content to find all file links[cite: 27].
     local temp_source="temp_source.html"
@@ -113,12 +113,12 @@ process_url() {
 
     # Check if wget was successful
     if [ $? -ne 0 ]; then
-        echo -e "${RED}Error: Failed to fetch the URL. Please check the URL and your internet connection.${NC}"
+        echo -e "⛓️‍💥 ${RED}Error: Failed to fetch the URL. Please check the URL and your internet connection.${NC}"
         rm "$temp_source" 2>/dev/null
         exit 1
     fi
 
-    echo -e "${YELLOW}Extracting file and image links from the main page...${NC}"
+    echo -e "${YELLOW}Extracting 🎵 audio and 🖼 image file links from the main page...${NC}"
 
     # [cite_start]Step 4: Extract direct download URLs for audio files from the 'src' attribute[cite: 28].
     # [cite_start]This is a one-step process for audio files, as you identified[cite: 5, 6].
@@ -133,18 +133,18 @@ process_url() {
 
     # [cite_start]Final check for files[cite: 45, 46, 47, 48].
     if [ ! -s direct_audio_urls.txt ] && [ ! -s image_filenames.txt ]; then
-        echo -e "${RED}No audio or image files found on the page for ${BOLD}$dir_name${NC}."
+        echo -e "👎🏻🎵🖼 ${RED}No audio or image files found on the page for ${BOLD}$dir_name${NC}."
         rmdir "$dir_name" 2>/dev/null
         exit 0
     elif [ -s direct_audio_urls.txt ] && [ ! -s image_filenames.txt ]; then
         echo -e "${BOLD}-------------------------------------${NC}"
-        echo -e "${GREEN}Download process complete! All audio files were downloaded successfully for ${BOLD}$dir_name. ${NC}${RED}No image files found!${NC}"
+        echo -e "👍🏻🎵 ${GREEN}Download process complete! All audio files were downloaded successfully for ${BOLD}$dir_name. ${NC}${RED}No 🖼 image files found!${NC}"
     elif [ ! -s direct_audio_urls.txt ] && [ -s image_filenames.txt ]; then
         echo -e "${BOLD}-------------------------------------${NC}"
-        echo -e "${GREEN}Download process complete! All image files were downloaded successfully for ${BOLD}$dir_name. ${NC}${RED}No audio files found!${NC}"
+        echo -e "👍🏻🖼 ${GREEN}Download process complete! All image files were downloaded successfully for ${BOLD}$dir_name. ${NC}${RED}No 🎵 audio files found!${NC}"
     else
         echo -e "${BOLD}-------------------------------------${NC}"
-        echo -e "${GREEN}Download process complete! All files (audio and images) were downloaded successfully for ${BOLD}$dir_name.${NC}"
+        echo -e "👍🏻🎵🖼 ${GREEN}Download process complete! All files (audio and images) were downloaded successfully for ${BOLD}$dir_name.${NC}"
     fi
     echo ""
 }
@@ -159,17 +159,17 @@ main() {
         if [ -f "$2" ]; then
             readarray -t page_urls < "$2"
         else
-            echo -e "${RED}Error: File '$2' not found.${NC}"
+            echo -e "📝 ${RED}Error: File '$2' not found.${NC}"
             exit 1
         fi
     elif [ -n "$1" ]; then
         page_urls=("$1")
     else
-        read -p "Enter the sannyas.wiki URL to download from: " page_url < /dev/tty
+        read -p "🔗 Enter the sannyas.wiki URL to download from: " page_url < /dev/tty
         if [ -n "$page_url" ]; then
             page_urls=("$page_url")
         else
-            echo -e "${RED}Error: URL cannot be empty.${NC}"
+            echo -e "🔗 ${RED}Error: URL cannot be empty.${NC}"
             exit 1
         fi
     fi
