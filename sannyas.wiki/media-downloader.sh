@@ -31,6 +31,7 @@ download_audio_files() {
     if [ -s direct_audio_urls.txt ]; then
         echo ""
         echo -e "🔍🎵 ${YELLOW}Found the following direct audio URLs to download${NC}:"
+        echo -e "${BOLD}-------------------------------------${NC}"
         cat direct_audio_urls.txt
         echo -e "${BOLD}-------------------------------------${NC}"
         echo -e "${YELLOW}Starting 🎵 audio downloads with wget...${NC}"
@@ -53,6 +54,7 @@ download_image_files() {
     if [ -s image_filenames.txt ]; then
         echo ""
         echo -e "🔍 ${YELLOW}Found the following 🖼  image file arguments to process${NC}:"
+        echo -e "${BOLD}-------------------------------------${NC}"
         cat image_filenames.txt
         echo -e "${BOLD}-------------------------------------${NC}"
         echo -e "${YELLOW}Starting 🖼  image downloads with wget...${NC}"
@@ -93,7 +95,7 @@ process_url() {
     local page_url="$1"
 
     echo ""
-    echo -e "🔁 ${BOLD}Processing URL: ${YELLOW}$page_url${NC}"
+    echo -e ">>>>>>>>>>>>>>>>>> 🔁 ${BOLD}Processing URL: ${YELLOW}$page_url${NC} <<<<<<<<<<<<<<<<<<"
 
     # [cite_start]Step 2: Extract the title for the directory name and create it[cite: 24, 25, 26].
     page_title=$(echo "$page_url" | sed 's/.*title=\([^&]*\).*/\1/' | sed 's/ /_/g')
@@ -118,7 +120,7 @@ process_url() {
         exit 1
     fi
 
-    echo -e "${YELLOW}Extracting 🎵 audio and 🖼 image file links from the main page...${NC}"
+    echo -e "${YELLOW}Extracting 🎵 audio and 🖼  image file links from the main page...${NC}"
 
     # [cite_start]Step 4: Extract direct download URLs for audio files from the 'src' attribute[cite: 28].
     # [cite_start]This is a one-step process for audio files, as you identified[cite: 5, 6].
@@ -133,18 +135,19 @@ process_url() {
 
     # [cite_start]Final check for files[cite: 45, 46, 47, 48].
     if [ ! -s direct_audio_urls.txt ] && [ ! -s image_filenames.txt ]; then
-        echo -e "${RED}👎🏻🎵🖼  No audio or image files found on the page for ${BOLD}$dir_name${NC}."
+        echo -e ""
+        echo -e ">>>>>>>>>>>>>>>>>> ${RED}👎🏻🎵🖼  No audio or image files found on the page for ${BOLD}$dir_name${NC}. <<<<<<<<<<<<<<<<<<"
         rmdir "$dir_name" 2>/dev/null
         exit 0
     elif [ -s direct_audio_urls.txt ] && [ ! -s image_filenames.txt ]; then
-        echo -e "${BOLD}-------------------------------------${NC}"
-        echo -e "${GREEN}👍🏻🎵 All audio files were downloaded successfully for ${BOLD}$dir_name. ${NC}${RED}No 🖼  image files found!${NC}"
+        echo -e ""
+        echo -e ">>>>>>>>>>>>>>>>>> ${GREEN}👍🏻🎵 All audio files were downloaded successfully for ${BOLD}$dir_name. ${NC}${RED}No 🖼  image files found!${NC} <<<<<<<<<<<<<<<<<<"
     elif [ ! -s direct_audio_urls.txt ] && [ -s image_filenames.txt ]; then
-        echo -e "${BOLD}-------------------------------------${NC}"
-        echo -e "${GREEN}👍🏻🖼  All image files were downloaded successfully for ${BOLD}$dir_name. ${NC}${RED}No 🎵 audio files found!${NC}"
+        echo -e ""
+        echo -e ">>>>>>>>>>>>>>>>>> ${GREEN}👍🏻🖼  All image files were downloaded successfully for ${BOLD}$dir_name. ${NC}${RED}No 🎵 audio files found!${NC} <<<<<<<<<<<<<<<<<<"
     else
-        echo -e "${BOLD}-------------------------------------${NC}"
-        echo -e "${GREEN}👍🏻🎵🖼  All audio and image files were downloaded successfully for ${BOLD}$dir_name.${NC}"
+        echo -e ""
+        echo -e ">>>>>>>>>>>>>>>>>> ${GREEN}👍🏻🎵🖼  All audio and image files were downloaded successfully for ${BOLD}$dir_name.${NC} <<<<<<<<<<<<<<<<<<"
     fi
     echo ""
 }
