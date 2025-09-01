@@ -34,6 +34,7 @@ download_audio_files() {
         echo -e "${BOLD}-------------------------------------${NC}"
         cat direct_audio_urls.txt
         echo -e "${BOLD}-------------------------------------${NC}"
+        echo ""
         echo -e "${YELLOW}Starting 🎵 audio downloads with wget...${NC}"
         while IFS= read -r download_url; do
             filename=$(basename "$download_url" | sed 's/%20/ /g; s/%2C/,/g; s/%28/(/g; s/%29/)/g')
@@ -57,12 +58,13 @@ download_image_files() {
         echo -e "${BOLD}-------------------------------------${NC}"
         cat image_filenames.txt
         echo -e "${BOLD}-------------------------------------${NC}"
+        echo ""
         echo -e "${YELLOW}Starting 🖼  image downloads with wget...${NC}"
         while IFS= read -r filename; do
             # [cite_start]Construct the Browse URL using the extracted filename, WITH the 'File:' prefix[cite: 9, 10, 11].
             browse_url="https://www.sannyas.wiki/index.php?title=${filename}"
-            echo -e "🔁 Processing browse URL: ${YELLOW}$browse_url${NC}"
-
+            echo -e "🔁🖼  Processing image file's browse URL: ${YELLOW}$browse_url${NC}"
+            echo ""
             # [cite_start]Fetch the browse URL and extract the actual download URL[cite: 12, 13].
             actual_path=$(wget -q -O - "$browse_url" | grep -oE 'div class="fullMedia".*href="([^"]*images/[^"]*\.(jpg|jpeg|png|gif|pdf))"' | sed 's/.*href="//;s/"//')
 
