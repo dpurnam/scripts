@@ -36,16 +36,20 @@ download_audio_files() {
         echo -e "${BOLD}-------------------------------------${NC}"
         echo ""
         echo -e "${YELLOW}Starting 🎵 audio downloads with wget...${NC}"
+        echo -e "${BOLD}-------------------------------------${NC}"
         while IFS= read -r download_url; do
             filename=$(basename "$download_url" | sed 's/%20/ /g; s/%2C/,/g; s/%28/(/g; s/%29/)/g')
             echo "⬇️🎵 Downloading: $download_url"
             wget -q --show-progress -O "$dir_name/$filename" "$download_url"
             if [ $? -ne 0 ]; then
                 echo -e "Warning: Failed to download ${RED}$filename${NC}. Skipping..."
+                echo ""
             else
                 echo -e "✅🎵 Successfully downloaded ${GREEN}$filename${NC}."
+                echo ""
             fi
         done < direct_audio_urls.txt
+        echo -e "${BOLD}-------------------------------------${NC}"
     fi
 }
 
@@ -60,11 +64,11 @@ download_image_files() {
         echo -e "${BOLD}-------------------------------------${NC}"
         echo ""
         echo -e "${YELLOW}Starting 🖼  image downloads with wget...${NC}"
+        echo -e "${BOLD}-------------------------------------${NC}"
         while IFS= read -r filename; do
             # [cite_start]Construct the Browse URL using the extracted filename, WITH the 'File:' prefix[cite: 9, 10, 11].
             browse_url="https://www.sannyas.wiki/index.php?title=${filename}"
             echo -e "🔁🖼  Processing image file's browse URL: ${YELLOW}$browse_url${NC}"
-            echo ""
             # [cite_start]Fetch the browse URL and extract the actual download URL[cite: 12, 13].
             actual_path=$(wget -q -O - "$browse_url" | grep -oE 'div class="fullMedia".*href="([^"]*images/[^"]*\.(jpg|jpeg|png|gif|pdf))"' | sed 's/.*href="//;s/"//')
 
@@ -85,10 +89,13 @@ download_image_files() {
             wget -q --show-progress -O "$dir_name/$filename_clean" "$download_url"
             if [ $? -ne 0 ]; then
                 echo -e "Warning: Failed to download ${RED}$filename_clean${NC}. Skipping..."
+                echo ""
             else
                 echo -e "✅🖼  Successfully downloaded ${GREEN}$filename_clean${NC}."
+                echo ""
             fi
         done < image_filenames.txt
+        echo -e "${BOLD}-------------------------------------${NC}"
     fi
 }
 
@@ -98,6 +105,7 @@ process_url() {
 
     echo ""
     echo -e ">>>>>>>>>>>>>>>>>> 🔁 ${BOLD}Processing URL: ${YELLOW}$page_url${NC} <<<<<<<<<<<<<<<<<<"
+    echo ""
 
     # [cite_start]Step 2: Extract the title for the directory name and create it[cite: 24, 25, 26].
     page_title=$(echo "$page_url" | sed 's/.*title=\([^&]*\).*/\1/' | sed 's/ /_/g')
@@ -122,7 +130,7 @@ process_url() {
         exit 1
     fi
 
-    echo -e "${YELLOW}Extracting 🎵 audio and 🖼  image file links from the main page...${NC}"
+    echo -e "🔧 ${YELLOW}Extracting 🎵 audio and 🖼  image file links from the main page...${NC}"
 
     # [cite_start]Step 4: Extract direct download URLs for audio files from the 'src' attribute[cite: 28].
     # [cite_start]This is a one-step process for audio files, as you identified[cite: 5, 6].
