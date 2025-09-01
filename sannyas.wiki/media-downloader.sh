@@ -133,18 +133,18 @@ process_url() {
 
     # [cite_start]Final check for files[cite: 45, 46, 47, 48].
     if [ ! -s direct_audio_urls.txt ] && [ ! -s image_filenames.txt ]; then
-        echo -e "👎🏻🎵🖼  ${RED}No audio or image files found on the page for ${BOLD}$dir_name${NC}."
+        echo -e "${RED}👎🏻🎵🖼  No audio or image files found on the page for ${BOLD}$dir_name${NC}."
         rmdir "$dir_name" 2>/dev/null
         exit 0
     elif [ -s direct_audio_urls.txt ] && [ ! -s image_filenames.txt ]; then
         echo -e "${BOLD}-------------------------------------${NC}"
-        echo -e "👍🏻🎵 ${GREEN}All audio files were downloaded successfully for ${BOLD}$dir_name. ${NC}${RED}No 🖼  image files found!${NC}"
+        echo -e "${GREEN}👍🏻🎵 All audio files were downloaded successfully for ${BOLD}$dir_name. ${NC}${RED}No 🖼  image files found!${NC}"
     elif [ ! -s direct_audio_urls.txt ] && [ -s image_filenames.txt ]; then
         echo -e "${BOLD}-------------------------------------${NC}"
-        echo -e "👍🏻🖼  ${GREEN}All image files were downloaded successfully for ${BOLD}$dir_name. ${NC}${RED}No 🎵 audio files found!${NC}"
+        echo -e "${GREEN}👍🏻🖼  All image files were downloaded successfully for ${BOLD}$dir_name. ${NC}${RED}No 🎵 audio files found!${NC}"
     else
         echo -e "${BOLD}-------------------------------------${NC}"
-        echo -e "👍🏻🎵🖼  ${GREEN}All files (audio and images) were downloaded successfully for ${BOLD}$dir_name.${NC}"
+        echo -e "${GREEN}👍🏻🎵🖼  All audio and image files were downloaded successfully for ${BOLD}$dir_name.${NC}"
     fi
     echo ""
 }
