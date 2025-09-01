@@ -138,13 +138,13 @@ process_url() {
         exit 0
     elif [ -s direct_audio_urls.txt ] && [ ! -s image_filenames.txt ]; then
         echo -e "${BOLD}-------------------------------------${NC}"
-        echo -e "👍🏻🎵 ${GREEN}Download process complete! All audio files were downloaded successfully for ${BOLD}$dir_name. ${NC}${RED}No 🖼  image files found!${NC}"
+        echo -e "👍🏻🎵 ${GREEN}All audio files were downloaded successfully for ${BOLD}$dir_name. ${NC}${RED}No 🖼  image files found!${NC}"
     elif [ ! -s direct_audio_urls.txt ] && [ -s image_filenames.txt ]; then
         echo -e "${BOLD}-------------------------------------${NC}"
-        echo -e "👍🏻🖼  ${GREEN}Download process complete! All image files were downloaded successfully for ${BOLD}$dir_name. ${NC}${RED}No 🎵 audio files found!${NC}"
+        echo -e "👍🏻🖼  ${GREEN}All image files were downloaded successfully for ${BOLD}$dir_name. ${NC}${RED}No 🎵 audio files found!${NC}"
     else
         echo -e "${BOLD}-------------------------------------${NC}"
-        echo -e "👍🏻🎵🖼  ${GREEN}Download process complete! All files (audio and images) were downloaded successfully for ${BOLD}$dir_name.${NC}"
+        echo -e "👍🏻🎵🖼  ${GREEN}All files (audio and images) were downloaded successfully for ${BOLD}$dir_name.${NC}"
     fi
     echo ""
 }
@@ -180,6 +180,8 @@ main() {
 }
 
 # Call the main function with all script arguments
-echo -e "${BOLD}======================================== Sannyas.wiki Media Downloader ===============================================${NC}"
+echo ""
+echo -e "${BOLD}========================================>> Sannyas.wiki Media Downloader ===============================================>>${NC}"
 main "$@"
-echo -e "${BOLD}======================================== Sannyas.wiki Media Downloader ===============================================${NC}"
+echo -e "${BOLD}<<======================================== Sannyas.wiki Media Downloader <<===============================================${NC}"
+echo ""
