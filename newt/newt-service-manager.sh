@@ -10,6 +10,10 @@
 # A group named docker exists with Read/Write Permissions to the Docker Socket file
 
 #set -euo pipefail
+
+# Get the 'latest' release tag from GitHub API
+LATEST_RELEASE_TAG=$(curl -sL "https://api.github.com/repos/fosrl/newt/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+
 # ANSI color codes
 RED='\e[31m'
 GREEN='\e[32m'
@@ -81,7 +85,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   echo -e "${BOLD}==================================================================${NC}"
   echo ""
 
-  read -p "$(echo -e "${BOLD}Upgrade${NC} to latest version or ${BOLD}Remove${NC} existing ${ITALIC}${RED}$(newt -version)${NC}? ${BOLD}${ITALIC}${YELLOW}(${GREEN}u${YELLOW}/${RED}R${YELLOW})${NC}: ")" CONFIRM_UPGRADE_REMOVE < /dev/tty
+  read -p "$(echo -e "${BOLD}Upgrade${NC} to latest version (${LATEST_RELEASE_TAG}) or ${BOLD}Remove${NC} the current one ($(newt -version | awk '{print $3}'))? ${BOLD}${ITALIC}${YELLOW}(${GREEN}u${YELLOW}/${RED}R${YELLOW})${NC}: ")" CONFIRM_UPGRADE_REMOVE < /dev/tty
   if [[ ! "${CONFIRM_UPGRADE_REMOVE}" =~ ^[Rr]$ ]]; then
       read -p "$(echo -e "Proceed with ${BOLD}ALL the existing${NC} values? ${BOLD}${ITALIC}${YELLOW}(${GREEN}y${YELLOW}/${RED}N${YELLOW})${NC}: ")" CONFIRM_PROCEED < /dev/tty
       if [[ ! "${CONFIRM_PROCEED}" =~ ^[Yy]$ ]]; then
@@ -171,9 +175,7 @@ esac
 echo ""
 echo -e "🔍 Detected architecture: ${YELLOW}$ARCH ($NEWT_ARCH)${NC}"
 
-# Get the latest release tag from GitHub API
-# Use -s for silent, -L for follow redirects
-LATEST_RELEASE_TAG=$(curl -sL "https://api.github.com/repos/fosrl/newt/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+# Generate Release/Download URL based on the 'latest' tag
 RELEASE_URL="https://github.com/fosrl/newt/releases/download/${LATEST_RELEASE_TAG}/newt_linux_${NEWT_ARCH}"
 if [ -z "${RELEASE_URL}" ]; then
     echo -e "${RED}❌ Error: Could not fetch Newt release url from GitHub.${NC}"
