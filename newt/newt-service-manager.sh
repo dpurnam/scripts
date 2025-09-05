@@ -81,11 +81,11 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   echo -e "${BOLD}==================================================================${NC}"
   echo ""
 
-  read -p "$(echo -e "${BOLD}Upgrade${NC} to latest version or ${BOLD}Remove${NC} ${ITALIC}$(newt -version)${NC}? ${YELLOW}${BOLD}${ITALIC}(u/R)${NC}: ")" CONFIRM_UPGRADE_REMOVE < /dev/tty
+  read -p "$(echo -e "${BOLD}${GREEN}Upgrade${NC} to latest version or ${BOLD}${RED}Remove${NC} ${ITALIC}${RED}$(newt -version)${NC}? ${YELLOW}${BOLD}${ITALIC}(${NC}${GREEN}u${NC}${YELLOW}/${NC}${RED}R${NC}${YELLOW}${BOLD}${ITALIC})${NC}: ")" CONFIRM_UPGRADE_REMOVE < /dev/tty
   if [[ ! "${CONFIRM_UPGRADE_REMOVE}" =~ ^[Rr]$ ]]; then
-      read -p "$(echo -e "Proceed with ${BOLD}ALL the existing${NC} values? ${YELLOW}${BOLD}${ITALIC}(y/N)${NC}: ")" CONFIRM_PROCEED < /dev/tty
+      read -p "$(echo -e "Proceed with ${BOLD}ALL the existing${NC} values? ${YELLOW}${BOLD}${ITALIC}(${NC}${GREEN}y${NC}${YELLOW}/${NC}${RED}N${NC}${YELLOW}${BOLD}${ITALIC})${NC}: ")" CONFIRM_PROCEED < /dev/tty
       if [[ ! "${CONFIRM_PROCEED}" =~ ^[Yy]$ ]]; then
-        read -p "$(echo -e "Provide ${BOLD}New${NC} values? ${YELLOW}${BOLD}${ITALIC}(y/N)${NC}: ")" CONFIRM_PROVIDE < /dev/tty
+        read -p "$(echo -e "Provide ${BOLD}New${NC} values? ${YELLOW}${BOLD}${ITALIC}(${NC}${GREEN}y${NC}${YELLOW}/${NC}${RED}N${NC}${YELLOW}${BOLD}${ITALIC})${NC}: ")" CONFIRM_PROVIDE < /dev/tty
         if [[ ! "${CONFIRM_PROVIDE}" =~ ^[Yy]$ ]]; then
           echo -e "${RED}Operation cancelled by user.${NC}"
           exit 0 # Exit cleanly if the user doesn't confirm
@@ -98,7 +98,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
           NEWT_SECRET=$(prompt_with_default "Provide Newt Client Secret." "$NEWT_SECRET")
           PANGOLIN_ENDPOINT=$(prompt_with_default "Provide Pangolin Endpoint." "$PANGOLIN_ENDPOINT")
 
-          read -p "$(echo -e "Enable ${BOLD}Docker Socket${NC} Access ${YELLOW}${BOLD}${ITALIC}(y/N)${NC}: ")" DOCKER_SOCKET < /dev/tty
+          read -p "$(echo -e "Enable ${BOLD}Docker Socket${NC} Access? ${YELLOW}${BOLD}${ITALIC}(${NC}${GREEN}y${NC}${YELLOW}/${NC}${RED}N${NC}${YELLOW}${BOLD}${ITALIC})${NC}: ")" DOCKER_SOCKET < /dev/tty
           if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
               if [[ -z "${DOCKER_SOCKET_PATH}" ]]; then
                   DOCKER_SOCKET_PATH=$(prompt_with_default "Provide Docker Socket Path." "/var/run/docker.sock")
@@ -108,8 +108,8 @@ if [[ -f "${SERVICE_FILE}" ]]; then
               #DOCKER_SOCKET_PATH=$(prompt_with_default "Provide Docker Socket Path." "$DOCKER_SOCKET_PATH")
           fi
           
-          read -p "$(echo -e "Enable ${BOLD}OLM Clients${NC} Access? ${YELLOW}${BOLD}${ITALIC}(y/N)${NC}: ")" NEWT_CLIENTS < /dev/tty
-          read -p "$(echo -e "Enable ${BOLD}Native${NC} Mode ${YELLOW}${BOLD}${ITALIC}(y/N)${NC}: ")" NEWT_NATIVE < /dev/tty
+          read -p "$(echo -e "Enable ${BOLD}OLM Clients${NC} Access? ${YELLOW}${BOLD}${ITALIC}(${NC}${GREEN}y${NC}${YELLOW}/${NC}${RED}N${NC}${YELLOW}${BOLD}${ITALIC})${NC}: ")" NEWT_CLIENTS < /dev/tty
+          read -p "$(echo -e "Enable ${BOLD}Native${NC} Mode? ${YELLOW}${BOLD}${ITALIC}(${NC}${GREEN}y${NC}${YELLOW}/${NC}${RED}N${NC}${YELLOW}${BOLD}${ITALIC})${NC}: ")" NEWT_NATIVE < /dev/tty
         fi
       fi
   else
