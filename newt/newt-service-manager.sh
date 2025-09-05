@@ -11,7 +11,7 @@
 
 #set -euo pipefail
 
-# Get the 'latest' release tag from GitHub API
+# Get the 'latest' release tag for the newt client, from GitHub API
 LATEST_RELEASE_TAG=$(curl -sL "https://api.github.com/repos/fosrl/newt/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 
 # ANSI color codes
