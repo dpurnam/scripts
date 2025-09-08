@@ -269,28 +269,28 @@ EOF2
     if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]] && getent group docker >/dev/null; then
         if ! getent passwd newt >/dev/null; then
             useradd -r -g newt -G docker -s /usr/sbin/nologin -c "Newt Service User" newt
-            echo -e "${GREEN}Newt${NC} Service User has been ${BOLD}created and added${NC} to the standard ${GREEN}docker${NC} group!"
+            echo -e "🦰 ${GREEN}Newt${NC} Service User has been ${BOLD}created and added${NC} to the standard ${GREEN}docker${NC} group!"
         else
             usermod -aG docker newt
-            echo -e "${GREEN}Newt${NC} Service User ${BOLD}already exists and has been added${NC} to the standard ${GREEN}docker${NC} group!"
+            echo -e "🦰 ${GREEN}Newt${NC} Service User ${BOLD}already exists and has been added${NC} to the standard ${GREEN}docker${NC} group!"
         fi
     elif [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]] && ! getent group docker >/dev/null; then
         if ! getent passwd newt >/dev/null; then
             useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
-            echo -e "Although standard ${RED}docker${NC} group not found, ${GREEN}Newt${NC} Service User is ${BOLD}created${NC}. ${BOLD}${RED}REMEMBER${NC} to add it to your ${BOLD}${YELLOW}custom docker${NC} group!"
+            echo -e "Although standard ${RED}docker${NC} group not found, 🦰 ${GREEN}Newt${NC} Service User is ${BOLD}created${NC}. 💡 ${BOLD}${RED}REMEMBER${NC} to add it to your ${BOLD}${YELLOW}custom docker${NC} group!"
         else
-            echo -e "Although standard ${RED}docker${NC} group not found, ${GREEN}Newt${NC} Service User ${BOLD}already exists${NC}. ${BOLD}${RED}REMEMBER${NC} to add it to your ${BOLD}${YELLOW}custom docker${NC} group!"
+            echo -e "Although standard ${RED}docker${NC} group not found, 🦰 ${GREEN}Newt${NC} Service User ${BOLD}already exists${NC}. 💡 ${BOLD}${RED}REMEMBER${NC} to add it to your ${BOLD}${YELLOW}custom docker${NC} group!"
         fi
     elif getent passwd newt >/dev/null && id -nG "newt" | grep -qw "docker"; then
         gpasswd -d newt docker
-        echo -e "${YELLOW}${BOLD}Removed${NC} ${YELLOW}existing Newt Service User from standard docker group!${NC}"
+        echo -e "🦰 ${YELLOW}${BOLD}Removed${NC} ${YELLOW}existing Newt Service User from standard docker group!${NC}"
     else
         # This block handles all other cases, including when the user is created for the first time
         if ! getent passwd newt >/dev/null; then
             useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
-            echo -e "A regular ${GREEN}Newt${NC} Service User has been ${BOLD}created${NC}!"
+            echo -e "🦰 A regular ${GREEN}Newt${NC} Service User has been ${BOLD}created${NC}!"
         else
-            echo -e "A regular ${GREEN}Newt${NC} Service User ${BOLD}already exists${NC}!"
+            echo -e "🦰 A regular ${GREEN}Newt${NC} Service User ${BOLD}already exists${NC}!"
         fi
     fi
     mkdir -p "${NEWT_LIB_PATH}"
@@ -303,9 +303,11 @@ if [[ -f "${SERVICE_FILE}" ]]; then
 fi
 # Write the content to the service file
 echo "$SERVICE_CONTENT" | tee "$SERVICE_FILE" > /dev/null
-echo -e "===> Systemd service file (re)created at ${BOLD}${GREEN}$SERVICE_FILE${NC} with provided NEWT VPN Client details. <==="
+echo -e "🗒️ ===> Systemd service file (re)created at ${BOLD}${GREEN}$SERVICE_FILE${NC} with provided NEWT VPN Client details. <==="
 echo ""
-echo -e "${BOLD}${YELLOW}🔧 Enabling/Starting the service after daemon-reload...${NC}"
+echo -e "${BOLD}${YELLOW}⚙️ Enabling/Starting the service after daemon-reload...${NC}"
+echo ""
+echo -e "${BOLD}${YELLOW}💡 Press 'q' to exit!${NC}"
 echo ""
 systemctl daemon-reload
 systemctl enable $SERVICE_NAME
