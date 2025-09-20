@@ -9,7 +9,7 @@
   -  Set up or Update a TLSA record (used for `DANE` feature of Stalwart) on an associated Cloudflare Account
 
 - Stalwart Mailserver's **[Full Backup/Restore Manager](https://github.com/dpurnam/scripts/tree/main/stalwart)** (coming soon)
-  -  Complete backup or restore of all/selective `Individual type` Accounts and PostgresSQL DB
+  -  Complete backup or restore of PostgresSQL DB and all (or pre-defined list of) `Individual type` Accounts
   -  Compression and Encryption before/after syncing with desired Storage Provider via `rclone`
 
 - Device Availability Manager - **[WakeMyPotata](https://github.com/dpurnam/scripts/tree/main/WakeMyPotata)**
