@@ -6,7 +6,11 @@
   - Remove Newt Systemd Service
     
 - Stalwart Mailserver's **[Cloudflare TLSA Record Updater](https://github.com/dpurnam/scripts/tree/main/stalwart)**
-  - Set up or Update a TLSA record (used for `DANE` feature of Stalwart) on an associated Cloudflare Account
+  -  Set up or Update a TLSA record (used for `DANE` feature of Stalwart) on an associated Cloudflare Account
+
+- Stalwart Mailserver's **[Full Backup/Restore Manager](https://github.com/dpurnam/scripts/tree/main/stalwart)** (coming soon)
+  -  Complete backup or restore of all/selective `Individual type` Accounts and PostgresSQL DB
+  -  Compression and Encryption before/after syncing with desired Storage Provider via `rclone`
 
 - Device Availability Manager - **[WakeMyPotata](https://github.com/dpurnam/scripts/tree/main/WakeMyPotata)**
   - Automatically boot up a device after AC power outage using `rtcwakeup` tool. Now supports both battery-powered as well as battery-less devices!
