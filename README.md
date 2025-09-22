@@ -5,8 +5,8 @@
   - Update Newt VPN Client Binary
   - Remove Newt Systemd Service
     
-- Stalwart Mailserver Scripts
-  - **[Cloudflare TLSA Record Updater](https://github.com/dpurnam/scripts/tree/main/stalwart)**
+- Stalwart Mailserver [Scripts](https://github.com/dpurnam/scripts/tree/main/stalwart)
+  - **[Cloudflare TLSA Record Updater](https://github.com/dpurnam/scripts/blob/main/stalwart/cloudflare-tlsa-record-updater)**
     -  Set up or Update a TLSA record (used for `DANE` feature of Stalwart) on an associated Cloudflare Account
   - **[Full Backup/Restore Manager](https://github.com/dpurnam/scripts/tree/main/stalwart)** (coming soon)
     -  Complete backup or restore of PostgresSQL DB and all (or pre-defined list of) Accounts - `Individual type Principals`
