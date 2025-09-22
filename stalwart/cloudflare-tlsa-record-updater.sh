@@ -29,6 +29,7 @@ STALWART_API_KEY="My_Stalwart_API_Key"
 CLOUDFLARE_API_TOKEN="My_Cloudflare_API_Token"
 STALWART_CONTAINER_NAME="stalwart" # <--- Set this to the actual name of your Stalwart Docker container
 DOMAIN_LIST=("domain1.tld") # Adjust this list for all your email server hosts; We don't need multiple domains in this list, if there's ONLY ONE EMAIL SERVER HOST, regardless of whether it's provisioning for multiple email domains
+SWSERVER="mail" # non-fqdn hostname of the stalwart mail server host
 
 # --- Functions ---
 
@@ -153,6 +154,50 @@ check_and_install_container_curl() {
     fi
 }
 
+# Function to compare Stalwart and Cloudflare TLSA records
+# Returns 0 if records match, 1 if they don't, and 2 on error
+compare_tlsa_records() {
+    local domain="$1"
+    echo "--- Comparing TLSA records for $domain ---"
+
+    # 1. Get new TLSA records from Stalwart, filtering for 2 0 1 records
+    local STALWART_LOCAL_URL="http://localhost:8080/api/dns/records/${domain}"
+    local STALWART_RESPONSE=$(docker exec "${STALWART_CONTAINER_NAME}" curl -s \
+        -H "Authorization: Bearer ${STALWART_API_KEY}" \
+        "${STALWART_LOCAL_URL}")
+
+    if [[ -z "$STALWART_RESPONSE" || $(echo "${STALWART_RESPONSE}" | jq -r '.data') == "null" ]]; then
+        echo "Error: Stalwart API returned an empty or invalid response for $domain." >&2
+        return 2
+    fi
+
+    local stalwart_records=$(echo "${STALWART_RESPONSE}" | jq -r '.data[] | select(.type == "TLSA") | select(.content? | type == "string") | select((.content | split(" ")[0]) == "2" and (.content | split(" ")[1]) == "0" and (.content | split(" ")[2]) == "1") | .content' | sort)
+
+    # 2. Get existing TLSA records from Cloudflare, filtering for 2 0 1 records and the '$SWSERVER' comment
+    local ZONE_URL="https://api.cloudflare.com/client/v4/zones?name=${domain}"
+    local ZONE_RESPONSE=$(curl -s -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json" "${ZONE_URL}")
+    local ZONE_ID=$(echo "${ZONE_RESPONSE}" | jq -r '.result[0].id')
+
+    if [[ -z "$ZONE_ID" || "$ZONE_ID" == "null" ]]; then
+        echo "Error: Could not find Cloudflare Zone ID for domain: $domain." >&2
+        return 2
+    fi
+
+    local DNS_RECORDS_URL="https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records?type=TLSA"
+    local DNS_RECORDS_RESPONSE=$(curl -s -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json" "${DNS_RECORDS_URL}")
+
+    local cloudflare_records=$(echo "${DNS_RECORDS_RESPONSE}" | jq -r '.result[] | select((.comment | contains("Managed by TLSA-updater script on AMDVPS")) and (.data.usage == 2 and .data.selector == 0 and .data.matching_type == 1)) | .data.usage, .data.selector, .data.matching_type, .data.certificate' | paste -s -d' ' | sort)
+
+    # 3. Compare the sorted outputs
+    if [[ "$stalwart_records" == "$cloudflare_records" ]]; then
+        echo "TLSA records match for $domain. No update needed."
+        return 0
+    else
+        echo "TLSA records DO NOT match for $domain. An update is required."
+        return 1
+    fi
+}
+
 # Function to update TLSA records for a given domain
 update_tlsa_records() {
     local domain_to_update="$1"
@@ -173,7 +218,7 @@ update_tlsa_records() {
     fi
     echo "Cloudflare Zone ID for $domain_to_update: $ZONE_ID"
 
-    # 2. Delete existing TLSA records (names of which contain 'amdvps') for this domain on Cloudflare
+    # 2. Delete existing TLSA records (names of which contain '$SWSERVER') for this domain on Cloudflare
     echo "Fetching and deleting all existing TLSA records for ${domain_to_update} on Cloudflare..."
     DNS_RECORDS_URL="https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records?type=TLSA"
     DNS_RECORDS_RESPONSE=$(curl -s -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json" "${DNS_RECORDS_URL}")
@@ -183,8 +228,8 @@ update_tlsa_records() {
             RECORD_ID=$(echo "${existing_record}" | jq -r '.id')
             RECORD_NAME_EXISTING=$(echo "${existing_record}" | jq -r '.name') # Get existing record name for logging
 
-            # Check if the existing record name contains '.amdvps.'
-            if [[ "$RECORD_NAME_EXISTING" == *".amdvps."* ]]; then
+            # Check if the existing record name contains '.$SWSERVER.'
+            if [[ "$RECORD_NAME_EXISTING" == *".$SWSERVER."* ]]; then # <--- NEW CONDITION ADDED HERE
                 DELETE_URL="https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records/${RECORD_ID}"
                 DELETE_RESPONSE=$(curl -s -X DELETE -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json" "${DELETE_URL}")
                 if echo "${DELETE_RESPONSE}" | jq -e '.success == true' > /dev/null; then
@@ -193,7 +238,7 @@ update_tlsa_records() {
                     echo "Failed to delete TLSA record: $RECORD_NAME_EXISTING (ID: $RECORD_ID). Response: $DELETE_RESPONSE"
                 fi
             else
-                echo "Skipping TLSA record deletion for: $RECORD_NAME_EXISTING (Does not end with '.amdvps')" # <--- Added log for skipped records
+                echo "Skipping TLSA record deletion for: $RECORD_NAME_EXISTING (Does not end with '.$SWSERVER')" # <--- Added log for skipped records
             fi
         done
         echo "Finished deleting existing TLSA records."
@@ -225,13 +270,13 @@ update_tlsa_records() {
         return 1
     fi
 
-    # 4. Add only '2 0 1' & '3 1 1' TLSA records from Stalwart to Cloudflare
+    # 4. Add all TLSA records from Stalwart to Cloudflare
     echo "Adding new TLSA records from Stalwart to Cloudflare..."
     echo "${STALWART_RESPONSE}" | jq -c '.data[] | select(.type == "TLSA")' | while read -r new_record; do
         RECORD_TYPE=$(echo "${new_record}" | jq -r '.type')
         local ORIGINAL_RECORD_NAME=$(echo "${new_record}" | jq -r '.name' | sed 's/\.$//') # Remove trailing dot
 	local RECORD_NAME_FOR_MATCH="$ORIGINAL_RECORD_NAME"
-	local FINAL_RECORD_NAME="${ORIGINAL_RECORD_NAME/.${domain_to_update}/.amdvps}"
+	local FINAL_RECORD_NAME="${ORIGINAL_RECORD_NAME/.${domain_to_update}/.$SWSERVER}"
         if [[ "$RECORD_NAME_FOR_MATCH" == *".$domain_to_update" || "$RECORD_NAME_FOR_MATCH" == "$domain_to_update" ]]; then
             CONTENT=$(echo "${new_record}" | jq -r '.content')
             IFS=' ' read -r USAGE SELECTOR MATCHING_TYPE CERTIFICATE <<< "$CONTENT"
@@ -280,9 +325,15 @@ check_and_install_host_binary "jq" "jq"
 check_and_install_container_curl "${STALWART_CONTAINER_NAME}"
 
 for domain in "${DOMAIN_LIST[@]}"; do
-    update_tlsa_records "$domain"
+    compare_tlsa_records "$domain"
+    if [[ $? -eq 1 ]]; then
+        update_tlsa_records "$domain"
+    fi
 done
 
+#for domain in "${DOMAIN_LIST[@]}"; do
+#    update_tlsa_records "$domain"
+#done
 echo "All TLSA record updates complete."
 
 exit 0
