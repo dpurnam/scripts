@@ -28,8 +28,7 @@
 STALWART_API_KEY="My_Stalwart_API_Key"
 CLOUDFLARE_API_TOKEN="My_Cloudflare_API_Token"
 STALWART_CONTAINER_NAME="stalwart" # <--- Set this to the actual name of your Stalwart Docker container
-# IMPORTANT: Replace with your actual domain names that need TLSA updates.
-DOMAIN_LIST=("domain1.tld") # Adjust this list for all your email server host domains; We don't need multiple domains in this list, if there's ONLY ONE EMAIL SERVER HOST, regardless of whether it's provisioning for multiple email domains
+DOMAIN_LIST=("domain1.tld") # Adjust this list for all your email server hosts; We don't need multiple domains in this list, if there's ONLY ONE EMAIL SERVER HOST, regardless of whether it's provisioning for multiple email domains
 
 # --- Functions ---
 
