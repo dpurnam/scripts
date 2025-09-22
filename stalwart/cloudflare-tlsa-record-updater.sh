@@ -28,6 +28,8 @@
 STALWART_API_KEY="My_Stalwart_API_Key"
 CLOUDFLARE_API_TOKEN="My_Cloudflare_API_Token"
 STALWART_CONTAINER_NAME="stalwart" # <--- Set this to the actual name of your Stalwart Docker container
+# IMPORTANT: Replace with your actual domain names that need TLSA updates.
+DOMAIN_LIST=("domain1.tld") # Adjust this list for all your email server host domains; We don't need multiple domains in this list, if there's ONLY ONE EMAIL SERVER HOST, regardless of whether it's provisioning for multiple email domains
 
 # --- Functions ---
 
@@ -277,9 +279,6 @@ check_and_install_host_binary "jq" "jq"
 
 # 2. Verify and install 'curl' inside the Stalwart Docker container
 check_and_install_container_curl "${STALWART_CONTAINER_NAME}"
-
-# IMPORTANT: Replace with your actual domain names that need TLSA updates.
-DOMAIN_LIST=("domain1.tld") # Adjust this list for all your email server host domains; since only amdvps.domain1.tld is the mail server, we don't need any other domains in this list
 
 for domain in "${DOMAIN_LIST[@]}"; do
     update_tlsa_records "$domain"
