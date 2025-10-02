@@ -3,6 +3,7 @@
   - Freshly Install Newt VPN Client Systemd Service
   - Update Newt VPN Client Binary
   - Remove Newt Systemd Service
+  - Supports OLM Clients and Native Mode
 
 # Usage:
 Execute the command below or create a local bash script to do so
