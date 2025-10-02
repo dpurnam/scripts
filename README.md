@@ -4,6 +4,8 @@
   - Freshly Install Newt VPN Client Systemd Service
   - Update Newt VPN Client Binary
   - Remove Newt Systemd Service
+  - Supports OLM Clients and Native Mode
+
     
 - Stalwart Mailserver [Scripts](https://github.com/dpurnam/scripts/tree/main/stalwart)
   - **[Cloudflare TLSA Record Updater](https://github.com/dpurnam/scripts/blob/main/stalwart/cloudflare-tlsa-record-updater.sh)**
