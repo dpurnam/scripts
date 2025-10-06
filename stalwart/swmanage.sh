@@ -24,7 +24,7 @@ while getopts "c:p:m:kz" opt; do
             echo "Usage: $0 -c <stalwart_admin_password> -p <passphrase> -m <backup/restore> -k -z"
             echo "  -m : (optional) - Define script mode viz. backup or restore."
             echo "                    If unused, defaults to backup mode." && echo ""
-            echo "  -k : (optional) - If used, keeps the temporary .gzip file for quick local access."
+            echo "  -k : (optional) - If used, keeps the temporary .gzip files for quick local access."
             echo "                    If unused, defaults to deleting the temporary .gzip files after the script completes" && echo ""
             echo "  -z : (optional) - If used, allows to work on custom list of DOMAINS/ACCOUNTS (info must be provied in the Main config file!)"
             echo "                    If unused, defaults to working on ALL Individual ACCOUNTS from the server." && echo ""
@@ -36,10 +36,10 @@ done
 # Check if required arguments were provided
 if [ -z "$SWPASSWORD" ] || [ -z "$PASSPHRASE" ]; then
     echo "Error: At least the Stalwart Admin password (-c) and your file encryption passphrase (-p) are required."
-    echo "Usage: $0 -c <stalwart_admin_password> -p <passphrase> -o <backup/restore> -k -z"
+    echo "Usage: $0 -c <stalwart_admin_password> -p <passphrase> -m <backup/restore> -k -z"
     echo "  -m : (optional) - Define script mode viz. backup or restore."
     echo "                    If unused, defaults to backup mode." && echo ""
-    echo "  -k : (optional) - If used, keeps the temporary .gzip file for quick local access."
+    echo "  -k : (optional) - If used, keeps the temporary .gzip files for quick local access."
     echo "                    If unused, defaults to deleting the temporary .gzip files after the script completes" && echo ""
     echo "  -z : (optional) - If used, allows to work on custom list of DOMAINS/ACCOUNTS (info must be provied in the Main config file!)"
     echo "                    If unused, defaults to working on ALL Individual ACCOUNTS from the server." && echo ""
