@@ -41,13 +41,13 @@ Example:
 ## Directory Structure:
  .
 <br>│   │<br>
-├── backups `(automatically created)`
+├── **backups** `(automatically created)`
 <br>│   │<br>
-│   └── myhostname-local `(automatically created in backup mode)`
+│   └── **myhostname-local** `(automatically created in backup mode)`
 <br>│   │<br>
-│   └── myhostname-remote `(automatically created in restore mode)`
+│   └── **myhostname-remote** `(automatically created in restore mode)`
 <br>│<br>
-├── cloudflare-tlsa-updater.sh `(Custom User File)`
+├── _cloudflare-tlsa-updater.sh_ `(Custom User File)`
 <br>│<br>
 ├── data `(Stalwart Data Folder)`
 <br>│   │<br>
@@ -75,7 +75,7 @@ Example:
 <br>│   │<br>
  │   │...
 <br>│   │<br>
-├── sieve-scripts `(Custom User Folder)`
+├── _sieve-scripts_ `(Custom User Folder)`
 <br>│   │<br>
 │   ├── main
 <br>│   │<br>
@@ -83,11 +83,11 @@ Example:
 <br>│   │<br>
 │   └── main-user-filters
 <br>│<br>
-├── swmanage-config.conf `(Main Config File)`
+├── **swmanage-config.conf** `(Main Config File)`
 <br>│<br>
-├── swmanage-rclone.conf `(Rclone Config File)`
+├── **swmanage-rclone.conf** `(Rclone Config File)`
 <br>│<br>
-└── swmanage.sh `(Main Script File)`
+└── **_swmanage.sh_** `(Main Script File)`
 
 
 ## Components
