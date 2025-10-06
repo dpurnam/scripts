@@ -43,9 +43,9 @@ Example:
 <br>│   │<br>
 ├── backups `(automatically created)`
 <br>│   │<br>
-│   └── armvps-local `(automatically created in backup mode)`
+│   └── myhostname-local `(automatically created in backup mode)`
 <br>│   │<br>
-│   └── armvps-remote `(automatically created in restore mode)`
+│   └── myhostname-remote `(automatically created in restore mode)`
 <br>│<br>
 ├── cloudflare-tlsa-updater.sh `(Custom User File)`
 <br>│<br>
