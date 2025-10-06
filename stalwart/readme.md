@@ -38,6 +38,14 @@ Example:
 ```
 ./swmanage.sh -c stalwart_admin_password -p my_passphrase -o backup
 ```
+## Components
+
+- [swmanage.sh](https://github.com/dpurnam/scripts/blob/main/stalwart/swmanage.sh) : The Core Intelligence.
+
+- [swmanage-rclone.conf](https://github.com/dpurnam/scripts/blob/main/stalwart/swmanage-rclone.conf) : The Rclone Config File (Must be populated with Valid Info)
+
+- [swmanage-config.conf](https://github.com/dpurnam/scripts/blob/main/stalwart/swmanage-config.conf) : The Main Config File (must be populated with valid Info)
+
 ## Directory Structure:
  .
 <br>│   │<br>
@@ -89,14 +97,6 @@ Example:
 <br>│<br>
 └── **_swmanage.sh_** `(Main Script File)`
 
-
-## Components
-
-- [swmanage.sh](https://github.com/dpurnam/scripts/blob/main/stalwart/swmanage.sh) : The Core Intelligence.
-
-- [swmanage-rclone.conf](https://github.com/dpurnam/scripts/blob/main/stalwart/swmanage-rclone.conf) : The Rclone Config File (Must be populated with Valid Info)
-
-- [swmanage-main.conf](https://github.com/dpurnam/scripts/blob/main/stalwart/swmanage-main.conf) : The Main Config File (must be populated with valid Info)
 
 ## Other packages/components used/installed/launched automatically
 - `jq` package
