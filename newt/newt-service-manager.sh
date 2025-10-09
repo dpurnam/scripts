@@ -208,7 +208,7 @@ fi
 # --- End of Newt Binary Section ---
 
 # Initialize ExecStartValue
-ExecStartValue="$NEWT_BIN_PATH --id ${NEWT_ID} --secret ${NEWT_SECRET} --endpoint ${PANGOLIN_ENDPOINT}"
+ExecStartValue="$NEWT_BIN_PATH --id ${NEWT_ID} --secret ${NEWT_SECRET} --endpoint ${PANGOLIN_ENDPOINT} --health-file /tmp/newt-healthy"
 
 # Conditionally add --accept-clients, --native or --docker-socket flags - ONLY for Upgrade Choice
 if [[ "${NEWT_CLIENTS}" =~ ^[Yy]$ ]]; then
