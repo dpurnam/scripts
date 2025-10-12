@@ -5,8 +5,11 @@ services:
     restart: unless-stopped
     ports:
       - '3036:3036'
+    volumes:
+      - ${DATA_DIR}:/data # $DATA_DIR is the variable from the main udocker script for this compose file.
+      #- ${SERVICE_DIR}:/myhome # Similarly, If required map the Service Directory from host to the container.
     environment:
-      DOMAIN: https://myvault.example.org  # Your domain; vaultwarden needs to know it's https to work properly with attachments
+      #DOMAIN: https://myvault.example.org  # Your domain; vaultwarden needs to know it's https to work properly with attachments
       SIGNUPS_ALLOWED: false
       INVITATIONS_ALLOWED: true
       SIGNUPS_DOMAINS_WHITELIST: example.org
@@ -17,20 +20,17 @@ services:
       ENABLE_WEBSOCKET: true
       ROCKET_WORKERS: 4 # 1x CPU cores
       ROCKET_PORT: 3036 # Define Internal Port to bind on (should > 1023)
-      SMTP_HOST: mail.example.org
-      SMTP_SECURITY: starttls
-      SMTP_PORT: 465
-      SMTP_AUTH_MECHANISM: Login
-      SMTP_USERNAME: services@example.org
-      SMTP_PASSWORD: 'MySMTPPass'
-      SMTP_FROM: vault@example.org
-      SMTP_FROM_NAME: Vaultwarden
+      #SMTP_HOST: mail.example.org
+      #SMTP_SECURITY: starttls
+      #SMTP_PORT: 465
+      #SMTP_AUTH_MECHANISM: Login
+      #SMTP_USERNAME: services@example.org
+      #SMTP_PASSWORD: 'MySMTPPass'
+      #SMTP_FROM: vault@example.org
+      #SMTP_FROM_NAME: Vaultwarden
       ## If the Certificate is valid but the hostname doesn't match, please use SMTP_ACCEPT_INVALID_HOSTNAMES instead.
       # SMTP_ACCEPT_INVALID_CERTS=false
-      SMTP_ACCEPT_INVALID_HOSTNAMES: true
-      HELO_NAME: myvault.example.org
+      #SMTP_ACCEPT_INVALID_HOSTNAMES: true
+      #HELO_NAME: myvault.example.org
       #ADMIN_TOKEN: MyAdminRoken
       TZ: Asia/Kolkata
-    volumes:
-      - ${DATA_DIR}:/data # $DATA_DIR is the variable from the main udocker script for this compose file.
-      #- ${SERVICE_DIR}:/myhome # Similarly, If required map the Service Directory from host to the container.
