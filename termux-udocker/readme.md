@@ -14,6 +14,8 @@ pkg i git -y && git clone --depth 1 https://github.com/George-Seven/Termux-Udock
 3. Download `vaultwarden.sh` to `$HOME/Termux-Udocker` and make it executable `chmod +x $HOME/Termux-Udocker/vaultwarden.sh`
 4. Download/Revise `vaultwarden-docker-compose.yml` and rename/move it to `vaultwarden service directory` : `mv vaultwarden-docker-compose.yml $HOME/Termux-Udocker/vaultwarden/docker-compose.yml`
 5. Run `bash $HOME/Termux-Udocker/vaultwarden.sh`
+6. Access Vaultwarden Instance at `http://localhost:3036`
+7. (optional) Install, Configure Cloudflare and Run Cloudflared Tunnel (in `chroot`) for publishing the vault to internet as/if desired
 
 OR
 
@@ -33,3 +35,5 @@ curl -sL "https://raw.githubusercontent.com/dpurnam/scripts/main/termux-udocker/
 chmod +x vaultwarden.sh
 ```
 4. Modify the Docker Compose file with valid information and re-run the script `bash vaultawarden.sh`
+5. Access Vaultwarden Instance at `http://localhost:3036`
+6. (optional) Install, Configure Cloudflare and Run Cloudflared Tunnel (in `chroot`) for publishing the vault to internet as/if desired
