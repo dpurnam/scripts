@@ -6,8 +6,8 @@
 # Usage (in Termux Terminal)
 1. Git clone [udocker](https://github.com/George-Seven/Termux-Udocker/tree/main)
 2. Prepare Service `(Vaultwarden)` Directory structure `mkdir -p $HOME/Termux-Udocker/vaultwarden/data`
-3. Download `vaultwarden.sh` to `$HOME/Termux-Udocker` and make it executable `chmod +x`
-4. Download `vaultwarden-docker-compose.yml` to `$HOME/Termux-Udocker/vaultwarden` and rename it to `mv vaultwarden-docker-compose.yml docker-compose.yml`
+3. Download `vaultwarden.sh` to `$HOME/Termux-Udocker` and make it executable `chmod +x $HOME/Termux-Udocker/vaultwarden.sh`
+4. Download `vaultwarden-docker-compose.yml` and rename/move it to `vaultwarden service directory` : `mv vaultwarden-docker-compose.yml $HOME/Termux-Udocker/vaultwarden/docker-compose.yml`
 5. Run `cd $HOME/Termux-Udocker; ./vaultwarden.sh`
 
 OR
