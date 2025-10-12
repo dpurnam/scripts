@@ -1,5 +1,5 @@
 # Scripts
-- Termux Udocker's **[Vaultwarden](https://github.com/dpurnam/scripts/tree/main/termux-udocker)**
+- Termux Udocker's **[Vaultwarden](https://github.com/dpurnam/scripts/tree/main/termux-udocker)** (newly added)
   - Script for `Single Container` docker compose files to be used by [udocker](https://github.com/George-Seven/Termux-Udocker/tree/main)
   - [Sample Script for Vaultwarden](https://github.com/dpurnam/scripts/blob/main/termux-udocker/vaultwarden.sh) along with its [docker compose file](https://github.com/dpurnam/scripts/blob/main/termux-udocker/vaultwarden-docker-compose.yml) available
   - Customize/rewrite the script for any other services you'd like to run
