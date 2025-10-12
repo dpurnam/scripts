@@ -8,9 +8,14 @@ SERVICE_DIR="$(pwd)/$SERVICE"
 DATA_DIR="$SERVICE_DIR/data"
 COMPOSE_FILE="$SERVICE_DIR/docker-compose.yml"
 
+mkdir -p "${SERVICE_DIR}" "${DATA_DIR}"
+
 # Ensure docker compose file exists
 if [ ! -f "$COMPOSE_FILE" ]; then
-    echo "ERROR: $COMPOSE_FILE not found. Ensure a docker compose file with valid information exists before running this script again..."
+    echo "ERROR: $COMPOSE_FILE not found." && echo ""
+    echo "INFO: Dowloading a sample now..." && echo ""
+    wget -qO "${COMPOSE_FILE}" "https://raw.githubusercontent.com/dpurnam/scripts/main/termux-udocker/vaultwarden-docker-compose.yml" && echo ""
+    echo "NOTICE: Modify the sample docker compose file with valid information and re-run this script!" && echo ""
     exit 1
 fi
 
