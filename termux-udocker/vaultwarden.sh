@@ -1,7 +1,8 @@
 #!/data/data/com.termux/files/usr/bin/bash
 source "$(dirname "${BASH_SOURCE[0]}")/source.env"
 cd "$(dirname "${BASH_SOURCE[0]}")"
-
+#BASE_DIR="$HOME/Termux-Udocker"
+#source "${BASE_DIR}/source.env"
 
 SERVICE="vaultwarden"
 SERVICE_DIR="$(pwd)/$SERVICE"
