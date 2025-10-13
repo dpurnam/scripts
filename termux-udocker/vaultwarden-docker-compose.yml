@@ -4,12 +4,12 @@ services:
     container_name: vaultwarden
     restart: unless-stopped
     ports:
-      - '3036:3036'
+      - '3036:3036' # Define host:container port mapping (both should be > 1023, or else udocker will automatically assign a random port)
     volumes:
       - ${DATA_DIR}:/data # $DATA_DIR is the variable from the main udocker script for this compose file.
       #- ${SERVICE_DIR}:/myhome # Similarly, If required map the Service Directory from host to the container.
     environment:
-      #DOMAIN: https://myvault.example.org  # Your domain; vaultwarden needs to know it's https to work properly with attachments
+      DOMAIN: https://myvault.example.org  # Your domain; vaultwarden needs to know it's https to work properly with attachments. Cold also be a local domain and non-ssl, if running within lan - http:/vault.local
       SIGNUPS_ALLOWED: false
       INVITATIONS_ALLOWED: true
       SIGNUPS_DOMAINS_WHITELIST: example.org
@@ -19,7 +19,7 @@ services:
       LOG_LEVEL: warn
       ENABLE_WEBSOCKET: true
       ROCKET_WORKERS: 4 # 1x CPU cores
-      ROCKET_PORT: 3036 # Define Internal Port to bind on (should > 1023)
+      ROCKET_PORT: 3036 # Define Rocket (~container/internal) Port to bind on (should > 1023)
       #SMTP_HOST: mail.example.org
       #SMTP_SECURITY: starttls
       #SMTP_PORT: 465
