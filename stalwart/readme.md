@@ -36,7 +36,7 @@ To check all available commands, use `./swmanage.sh ?`.
 
 Example:
 ```
-./swmanage.sh -c stalwart_admin_password -p my_passphrase -o backup
+./swmanage.sh -c stalwart_admin_password -p my_passphrase -m backup
 ```
 ## Components
 
