@@ -25,3 +25,5 @@
 -----
 - Device Availability Manager - **[WakeMyPotata](https://github.com/dpurnam/scripts/tree/main/WakeMyPotata)**
   - Automatically boot up a device after AC power outage using `rtcwakeup` tool. Now supports both battery-powered as well as battery-less devices!
+
+-----
