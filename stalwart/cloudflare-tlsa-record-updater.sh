@@ -111,7 +111,7 @@ check_and_install_container_curl() {
     # This will return 0 if curl is found, non-zero otherwise
     local check_cmd_in_container="test -f /usr/bin/curl || test -f /bin/curl"
 
-    echo "Checking for 'curl' inside Docker container: ${container_name}..."
+    #echo "Checking for 'curl' inside Docker container: ${container_name}..."  # Disabled un-necessary info
 
     # Execute the check command directly
     if docker exec "${container_name}" sh -c "${check_cmd_in_container}" &> /dev/null; then
@@ -120,7 +120,7 @@ check_and_install_container_curl() {
     fi
 
     # If curl is not found by path, try to install it
-    echo "'curl' not found in common paths inside ${container_name}. Attempting to install..."
+    echo "'curl' not found in common paths inside ${container_name} container. Attempting to install..."
     local install_cmd=""
     # Try common package managers inside the container
     if docker exec "${container_name}" sh -c "command -v apt-get &> /dev/null"; then
@@ -149,7 +149,7 @@ check_and_install_container_curl() {
     if docker exec "${container_name}" sh -c "${check_cmd_in_container}" &> /dev/null; then
         echo "'curl' is now available inside ${container_name}."
     else
-        echo "Error: 'curl' is still not found inside ${container_name} after attempted installation. Please install it manually." >&2
+        echo "Error: 'curl' is still not found inside ${container_name} container after attempted installation. Please install it manually." >&2
         exit 1
     fi
 }
