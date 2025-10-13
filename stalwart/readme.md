@@ -52,8 +52,16 @@ Example:
 ├── **backups** `(automatically created)`
 <br>│   │<br>
 │   └── **myhostname-local** `(automatically created in backup mode)`
+<br>│   │   │<br>
+│   │   └── **accounts** `(automatically created in backup mode)`
+<br>│   │   │<br>
+│   │   └── **db** `(automatically created in backup mode)`
 <br>│   │<br>
 │   └── **myhostname-remote** `(automatically created in restore mode)`
+<br>│   │   │<br>
+│   │   └── **accounts** `(automatically created in restored mode)`
+<br>│   │   │<br>
+│   │   └── **db** `(automatically created in restore mode)`
 <br>│<br>
 ├── _cloudflare-tlsa-updater.sh_ `(Custom User File)`
 <br>│<br>
