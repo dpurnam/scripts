@@ -15,7 +15,7 @@ Stalwart Backup/Restore Manager (swmanage)
 
 ## Pre-requisites
 - A functional/healthy **Stalwart Mail Server** docker container (and its JMAP/WebAdmin access URL)
-- A functional/healthy **PostgresSQL DB** running on the host
+- A functional/healthy **PostgresSQL DB** running on the host and configured as backed store in Stalwart
 
 ## Usage
 1. Download all three files to the Stalwart Top Level Directory on the host.
