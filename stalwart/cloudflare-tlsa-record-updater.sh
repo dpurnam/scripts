@@ -98,8 +98,8 @@ check_and_install_host_binary() {
             echo "Could not detect OS for automatic ${binary_name} installation. Please install ${binary_name} manually." >&2
             exit 1
         fi
-    else
-        echo "${binary_name} is already installed."
+    #else # Disabled un-necessary info
+    #    echo "${binary_name} is already installed."
     fi
 }
 
@@ -115,7 +115,7 @@ check_and_install_container_curl() {
 
     # Execute the check command directly
     if docker exec "${container_name}" sh -c "${check_cmd_in_container}" &> /dev/null; then
-        echo "'curl' is already installed inside ${container_name}."
+        #echo "'curl' is already installed inside ${container_name}."  # Disabled un-necessary info
         return 0 # Exit function successfully
     fi
 
