@@ -3,7 +3,7 @@
   - Script for `Single Container` docker compose files to be used by [udocker](https://github.com/George-Seven/Termux-Udocker/tree/main)
   - [Sample Script for Vaultwarden](https://github.com/dpurnam/scripts/blob/main/termux-udocker/vaultwarden.sh) along with its [docker compose file](https://github.com/dpurnam/scripts/blob/main/termux-udocker/vaultwarden-docker-compose.yml) available
   - Customize/rewrite the script for any other services you'd like to run
-  - Automate service start using `termux-boot` and `termux-services` pkgs at Termux App launch
+  - Automate service start using `termux-boot` and `termux-services` pkgs at Android Host unlock after boot
   - Tested on a Non-Rooted Android phone running Termux from F-Droid
 
 -----
