@@ -33,6 +33,21 @@ fi
 # Extract container name
 CONTAINER_NAME=$(yq e ".services.$SERVICE.container_name" $COMPOSE_FILE)
 
+# -----------------------------------
+# --- ARGUMENT PARSING BLOCK ---
+if [ "$1" = "-remove" ]; then
+    echo "Stopping and removing container: ${CONTAINER_NAME}..."
+    # Check if the container exists (optional safety check)
+    if udocker ps -a | grep -q "${CONTAINER_NAME}"; then
+        udocker rm "${CONTAINER_NAME}"
+        echo "Container ${CONTAINER_NAME} removed successfully."
+    else
+        echo "Container ${CONTAINER_NAME} not found. Nothing to remove."
+    fi
+    exit 0 # Exit immediately after removal
+fi
+# -----------------------------------
+
 # Extract image name
 IMAGE_NAME=$(yq e ".services.$SERVICE.image" $COMPOSE_FILE)
 
