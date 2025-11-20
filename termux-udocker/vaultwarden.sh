@@ -37,12 +37,14 @@ CONTAINER_NAME=$(yq e ".services.$SERVICE.container_name" $COMPOSE_FILE)
 # --- ARGUMENT PARSING BLOCK ---
 if [ "$1" = "-remove" ]; then
     echo "Stopping and removing container: ${CONTAINER_NAME}..."
-    # Check if the container exists (optional safety check)
-    if udocker ps -a | grep -q "${CONTAINER_NAME}"; then
-        udocker rm "${CONTAINER_NAME}"
-        echo "Container ${CONTAINER_NAME} removed successfully."
+    CONTAINER_ID=$(udocker ps | grep "${CONTAINER_NAME}" | awk '{print $1}')
+    
+    # Check if a non-empty ID was found
+    if [ -n "$CONTAINER_ID" ]; then
+        udocker rm "$CONTAINER_ID"
+        echo "Container ${CONTAINER_NAME} (ID: $CONTAINER_ID) removed successfully."
     else
-        echo "Container ${CONTAINER_NAME} not found. Nothing to remove."
+        echo "Container ${CONTAINER_NAME} not found (or not listed by udocker ps)."
     fi
     exit 0 # Exit immediately after removal
 fi
