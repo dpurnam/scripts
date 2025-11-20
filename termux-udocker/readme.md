@@ -16,6 +16,7 @@ pkg i git -y && git clone --depth 1 https://github.com/George-Seven/Termux-Udock
 5. Run `bash $HOME/Termux-Udocker/vaultwarden.sh`
 6. Access Vaultwarden Instance at `http://localhost:3036`
 7. (optional) Install, Configure Cloudflare and Run Cloudflared Tunnel (in `chroot`) for publishing the vault to internet as/if desired
+8. (optional) Remove the container using `-remove` argument. for ex. `vaultwarden.sh -remove`
 
 OR
 
@@ -37,3 +38,5 @@ chmod +x vaultwarden.sh
 4. Modify the Docker Compose file with valid information and re-run the script `bash vaultawarden.sh`
 5. Access Vaultwarden Instance at `http://localhost:3036`
 6. (optional) Install, Configure Cloudflare and Run Cloudflared Tunnel (in `chroot`) for publishing the vault to internet as/if desired
+7. (optional) Remove the container using `-remove` argument. for ex. `vaultwarden.sh -remove`
+
