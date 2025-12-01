@@ -1,5 +1,5 @@
 [Unit]
-Description=WakeMyPotata: Emergency RAID/system safe shutdown (battery-only)
+Description=WakeMyPotata: Timer
 
 [Timer]
 Unit=wmp.service
