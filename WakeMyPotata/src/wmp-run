@@ -34,20 +34,20 @@ if [[ ! "$THRESHOLD" =~ ^[0-9]+$ ]] || (( THRESHOLD < 10 || THRESHOLD > 50 )); t
 # When the timer expires, the system will execute the RTC wake-up action
 rtcwake -m no -s "$TIMEOUT"
 
-log() { command -v systemd-cat &>/dev/null && echo "$*" | systemd-cat -t 'wmp' || echo "$*"; }
+log() { which systemd-cat &>/dev/null && echo "$*" | systemd-cat -t 'wmp' || echo "$*"; }
 echo "WakeMyPotata: Setup the RTC Wake-up call based on your provided timeout input!"
 log "WakeMyPotata: Setup the RTC Wake-up call based on your provided timeout input!"
 
 # Download/Install upower utiliy
-if ! command -v upower &>/dev/null; then
+if ! which upower &>/dev/null; then
     log "upower not found. Attempting to install."
-    if command -v apt-get &>/dev/null; then
+    if which apt-get &>/dev/null; then
         apt-get update && sudo apt-get install -y upower
-    elif command -v dnf &>/dev/null; then
+    elif which dnf &>/dev/null; then
         dnf install -y upower
-    elif command -v yum &>/dev/null; then
+    elif which yum &>/dev/null; then
         yum install -y upower
-    elif command -v pacman &>/dev/null; then
+    elif which pacman &>/dev/null; then
         pacman -Sy upower
     else
         log "Could not detect package manager. Please install upower manually."
@@ -57,7 +57,7 @@ fi
 
 # Capture current AC power status; 0 = On AC Power; non-Zero value = On Battery
 #ac_status=$(on_ac_power; echo $?)
-LINE_POWER_DEV=$(upower -e | grep 'line_power' | head -n 1)
+LINE_POWER_DEV=$(upower -e | grep 'line_power' | head -n 1 || true)
 if [ -n "$LINE_POWER_DEV" ]; then
     # Device Type 1: A line_power device is found, check if it's 'online'
     if upower -i $LINE_POWER_DEV | grep -q 'online:\s*yes'; then
@@ -96,7 +96,7 @@ else
             wall_msg="WakeMyPotata: Emergency shutdown! AC lost, battery at ${battery_percentage}% (≤ ${THRESHOLD}%).\nService will try to restart in $TIMEOUT seconds."
             echo -e "$wall_msg" | wall
             log "$wall_msg"
-            if command -v mdadm &>/dev/null; then
+            if which mdadm &>/dev/null; then
                 mdadm --detail --scan | while read -r line; do
                     raid_dev=$(echo "$line" | awk '{print $2}' | cut -d'=' -f1 | tr -d '[]')
                     if ! mdadm --detail "$raid_dev" &>/dev/null; then continue; fi
