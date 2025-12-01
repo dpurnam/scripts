@@ -42,13 +42,13 @@ log "WakeMyPotata: Setup the RTC Wake-up call based on your provided timeout inp
 if ! command -v upower &>/dev/null; then
     log "upower not found. Attempting to install."
     if command -v apt-get &>/dev/null; then
-        sudo apt-get update && sudo apt-get install -y upower
+        apt-get update && sudo apt-get install -y upower
     elif command -v dnf &>/dev/null; then
-        sudo dnf install -y upower
+        dnf install -y upower
     elif command -v yum &>/dev/null; then
-        sudo yum install -y upower
+        yum install -y upower
     elif command -v pacman &>/dev/null; then
-        sudo pacman -Sy upower
+        pacman -Sy upower
     else
         log "Could not detect package manager. Please install upower manually."
         exit 1
