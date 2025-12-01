@@ -56,7 +56,27 @@ if ! command -v upower &>/dev/null; then
 fi
 
 # Capture current AC power status; 0 = On AC Power; non-Zero value = On Battery
-ac_status=$(on_ac_power; echo $?)
+#ac_status=$(on_ac_power; echo $?)
+LINE_POWER_DEV=$(upower -e | grep 'line_power' | head -n 1)
+if [ -n "$LINE_POWER_DEV" ]; then
+    # Device Type 1: A line_power device is found, check if it's 'online'
+    if upower -i $LINE_POWER_DEV | grep -q 'online:\s*yes'; then
+        ac_status=0 # On AC Power
+    else
+        ac_status=1 # On Battery (line_power device found but not online)
+    fi
+else
+    # Device Type 2: No line_power device found (common for devices always on AC or embedded systems)
+    # The absence of a recognized battery device AND a line_power device usually means it's on AC.
+    # **Crucially, we check if a battery device is also missing/unknown to confirm AC power assumption.**
+    if upower -e | grep -q 'battery_'; then
+        # If there's a battery but no line_power, this is an ambiguous/error state, assume battery (1)
+        ac_status=1 
+    else
+        # No battery AND no line_power -> assume AC power
+        ac_status=0 
+    fi
+fi
 
 # Identify Battery Path using upower tool
 BAT_PATH=$(upower -e 2>/dev/null | grep -m1 BAT || true)
