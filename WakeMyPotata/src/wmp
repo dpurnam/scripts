@@ -174,6 +174,8 @@ elif [[ "$1" == "uninstall" ]]; then
     echo "Removing WakeMyPotata..."
     systemctl stop wmp.timer
     systemctl disable wmp.timer
+    systemctl stop wmp.service
+    systemctl disable wmp.service
     rm -rf /etc/systemd/system/wmp.* /usr/local/sbin/wmp-run /usr/local/sbin/wmp
     systemctl daemon-reload
     echo "All clear."
