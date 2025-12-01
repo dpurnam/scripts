@@ -102,14 +102,6 @@ elif [[ "$1" == "battery" && $threshold_feature -eq 1 ]]; then
         upower -i "$BAT_PATH" | grep -E 'state|percentage|time to empty|time to full'
     fi
 
-elif [[ "$1" == "threshold" && $threshold_feature -eq 1 ]]; then
-    echo "Battery threshold: $(get_threshold)%"
-
-elif [[ "$1" == "threshold" && "$2" == "set" && $threshold_feature -eq 1 ]]; then
-    echo "Usage: sudo wmp threshold set <percent>"
-    echo "       percent should be a number between 10 and 50"
-    exit 1
-
 elif [[ "$1" == "threshold" && "$2" == "set" && -n "$3" && $threshold_feature -eq 1 ]]; then
     if [[ ! "$3" =~ ^[0-9]+$ ]] || (( $3 < 10 || $3 > 50 )); then
         echo "Invalid input, please enter a positive integer (between 10 and 50)! Aborting..."
@@ -118,12 +110,13 @@ elif [[ "$1" == "threshold" && "$2" == "set" && -n "$3" && $threshold_feature -e
     set_threshold "$3"
     echo "Threshold updated successfully to $3%!"
 
-elif [[ "$1" == "timeout" ]]; then
-    echo "Timeout: $(get_timeout) seconds"
-
-elif [[ "$1" == "timeout" && "$2" == "set" ]]; then
-    echo "Usage: sudo wmp timeout set <seconds>"
+elif [[ "$1" == "threshold" && "$2" == "set" && $threshold_feature -eq 1 ]]; then
+    echo "Usage: sudo wmp threshold set <percent>"
+    echo "       percent should be a number between 10 and 50"
     exit 1
+
+elif [[ "$1" == "threshold" && $threshold_feature -eq 1 ]]; then
+    echo "Battery threshold: $(get_threshold)%"
 
 elif [[ "$1" == "timeout" && "$2" == "set" && -n "$3" ]]; then
     if [[ ! "$3" =~ ^[0-9]+$ ]] || (( $3 < 1 )); then
@@ -132,6 +125,13 @@ elif [[ "$1" == "timeout" && "$2" == "set" && -n "$3" ]]; then
     fi
     set_timeout "$3"
     echo "Timeout updated successfully to $3 seconds!"
+
+elif [[ "$1" == "timeout" && "$2" == "set" ]]; then
+    echo "Usage: sudo wmp timeout set <seconds>"
+    exit 1
+
+elif [[ "$1" == "timeout" ]]; then
+    echo "Timeout: $(get_timeout) seconds"
 
 elif [[ "$1" == "run" ]]; then
     shift
