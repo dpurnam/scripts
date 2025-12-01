@@ -23,7 +23,7 @@
     -  Compression and Encryption before/after syncing with desired Storage Provider via `rclone`
 
 -----
-- Device Availability Manager - **[WakeMyPotata](https://github.com/dpurnam/scripts/tree/main/WakeMyPotata)**
+- Device Availability Manager - **[WakeMyPotata](https://github.com/dpurnam/scripts/tree/main/WakeMyPotata)** (with latest fixes)
   - Automatically boot up a device after AC power outage using `rtcwakeup` tool. Now supports both battery-powered as well as battery-less devices!
 
 -----
