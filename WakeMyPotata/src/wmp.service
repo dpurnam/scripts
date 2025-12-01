@@ -3,4 +3,4 @@ Description=WakeMyPotata: Service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/sbin/wmp-run --timeout 600
+ExecStart=/usr/local/sbin/wmp-run --timeout 600 && exit 0
