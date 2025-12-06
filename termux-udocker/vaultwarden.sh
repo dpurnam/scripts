@@ -70,21 +70,40 @@ if [ "$ports" != "null" ]; then
 fi
 
 
-# Extract environment variables
+# Extract environment variables - Robust
 ENV_ARGS=()
-envs=$(yq e ".services.$SERVICE.environment" $COMPOSE_FILE)
-if [ "$envs" != "null" ]; then
-  # Map format
-  for key in $(yq e ".services.$SERVICE.environment | keys | .[]" $COMPOSE_FILE); do
-    value=$(yq e ".services.$SERVICE.environment.\"$key\"" $COMPOSE_FILE)
-    ENV_ARGS+=("-e" "$key=$value")
-  done
-  # Array format
-  for env in $(yq e ".services.$SERVICE.environment[]" $COMPOSE_FILE 2>/dev/null); do
-    [[ "$env" =~ "=" ]] && ENV_ARGS+=("-e" "$env")
-  done
-  #echo "${ENV_ARGS[@]}" # Uncomment for Debugging/Diplaying all the Environment Variables used
-fi
+case $(yq e ".services.$SERVICE.environment | type" "$COMPOSE_FILE") in
+  "!!map")
+    # map
+    while IFS= read -r key; do
+      value=$(yq e ".services.$SERVICE.environment.\"$key\"" "$COMPOSE_FILE")
+      ENV_ARGS+=("-e" "$key=$value")
+    done < <(yq e ".services.$SERVICE.environment | keys | .[]" "$COMPOSE_FILE")
+    ;;
+  "!!seq")
+    # array
+    while IFS= read -r env; do
+      [[ "$env" != *"="* ]] && continue
+      ENV_ARGS+=("-e" "$env")
+    done < <(yq e ".services.$SERVICE.environment[]" "$COMPOSE_FILE")
+    ;;
+esac
+
+# Extract environment variables - Breaks if key values have special characters including spaces
+# ENV_ARGS=()
+# envs=$(yq e ".services.$SERVICE.environment" $COMPOSE_FILE)
+# if [ "$envs" != "null" ]; then
+#   # Map format
+#   for key in $(yq e ".services.$SERVICE.environment | keys | .[]" $COMPOSE_FILE); do
+#     value=$(yq e ".services.$SERVICE.environment.\"$key\"" $COMPOSE_FILE)
+#     ENV_ARGS+=("-e" "$key=$value")
+#   done
+#   # Array format
+#   for env in $(yq e ".services.$SERVICE.environment[]" $COMPOSE_FILE 2>/dev/null); do
+#     [[ "$env" =~ "=" ]] && ENV_ARGS+=("-e" "$env")
+#   done
+#   #echo "${ENV_ARGS[@]}" # Uncomment for Debugging/Diplaying all the Environment Variables used
+# fi
 
 
 # Extract volume mappings
