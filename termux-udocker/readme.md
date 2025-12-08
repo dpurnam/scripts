@@ -1,5 +1,5 @@
 # Vaultwarden Udocker Installer
-- Script for `Single Container` docker compose files to be used by [udocker](https://github.com/George-Seven/Termux-Udocker/tree/main)
+- Script for `Single Container` docker compose files to be used by [udocker](https://github.com/dpurnam/Termux-Udocker/tree/main)
 - [Sample Script for Vaultwarden](https://github.com/dpurnam/scripts/blob/main/termux-udocker/vaultwarden.sh) along with its [docker compose file](https://github.com/dpurnam/scripts/blob/main/termux-udocker/vaultwarden-docker-compose.yml) available
 - Customize/rewrite the script for any other services you'd like to run
 - Automate service start using [termux-boot](https://github.com/termux/termux-boot) and [termux-services](https://github.com/termux/termux-services) at Termux App launch
@@ -20,7 +20,7 @@ pkg i git -y && git clone --depth 1 https://github.com/George-Seven/Termux-Udock
 
 OR
 
-1. Git clone [udocker](https://github.com/George-Seven/Termux-Udocker/tree/main)
+1. Git clone [udocker](https://github.com/dpurnam/Termux-Udocker/tree/main)
 ```
 pkg i git -y && git clone --depth 1 https://github.com/George-Seven/Termux-Udocker ~/Termux-Udocker; git -C ~/Termux-Udocker pull; bash ~/Termux-Udocker/install_udocker.sh
 ```
