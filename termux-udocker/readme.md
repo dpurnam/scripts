@@ -6,9 +6,9 @@
 - Tested on a Non-Rooted Android phone running Termux from F-Droid
   
 # Usage (in Termux Terminal)
-1. Git clone [udocker](https://github.com/George-Seven/Termux-Udocker/tree/main)
+1. Git clone [udocker](https://github.com/dpurnam/Termux-Udocker/tree/main)
 ```
-pkg i git -y && git clone --depth 1 https://github.com/George-Seven/Termux-Udocker ~/Termux-Udocker; git -C ~/Termux-Udocker pull; bash ~/Termux-Udocker/install_udocker.sh
+pkg i git -y && git clone --depth 1 https://github.com/dpurnam/Termux-Udocker ~/Termux-Udocker; git -C ~/Termux-Udocker pull; bash ~/Termux-Udocker/install_udocker.sh
 ```
 2. Prepare Service `(Vaultwarden)` Directory structure `mkdir -p $HOME/Termux-Udocker/vaultwarden/data`
 3. Download `vaultwarden.sh` to `$HOME/Termux-Udocker` and make it executable `chmod +x $HOME/Termux-Udocker/vaultwarden.sh`
@@ -22,7 +22,7 @@ OR
 
 1. Git clone [udocker](https://github.com/dpurnam/Termux-Udocker/tree/main)
 ```
-pkg i git -y && git clone --depth 1 https://github.com/George-Seven/Termux-Udocker ~/Termux-Udocker; git -C ~/Termux-Udocker pull; bash ~/Termux-Udocker/install_udocker.sh
+pkg i git -y && git clone --depth 1 https://github.com/dpurnam/Termux-Udocker ~/Termux-Udocker; git -C ~/Termux-Udocker pull; bash ~/Termux-Udocker/install_udocker.sh
 ```
 2. Automatically create the directory structure in present working directory `(typically $HOME/Termux-Udocker)` and download the sample docker compose file 
 ```
