@@ -25,7 +25,7 @@ NC='\e[0m' # No Color
 # Define the target path for the systemd service file
 SERVICE_NAME="newt.service"
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME"
-NEWT_BIN_PATH="/usr/local/bin/newt"
+NEWT_BIN_PATH="$(command -v newt 2>/dev/null || echo /usr/local/bin/newt)"
 NEWT_LIB_PATH="/var/lib/newt"
 DOCKER_SOCKET_PATH=""
 
@@ -61,7 +61,8 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   PANGOLIN_ENDPOINT=$(echo "${exec_start_line}" | awk -F'--endpoint ' '{print $2}' | awk '{print $1}')
   # Get current binary version
   #INSTALLED_VERSION="$("$NEWT_BIN_PATH" -version 2>/dev/null | awk '{print $3}')"
-  INSTALLED_VERSION="$(newt -version 2>/dev/null | awk '{print $3}')"
+  # INSTALLED_VERSION="$(newt -version 2>/dev/null | awk '{print $3}')"
+  INSTALLED_VERSION="$(newt -version 2>/dev/null | sed -nE 's/.*[Vv]ersion[[:space:]]+([0-9.]+).*/\1/p' | head -n1)"
 
   # Check for --accept-clients (deprecated), --disable-clients, --native or --docker-socket flags
   if [[ $exec_start_line == *"--accept-clients"* ]]; then
