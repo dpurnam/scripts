@@ -63,7 +63,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   #INSTALLED_VERSION="$("$NEWT_BIN_PATH" -version 2>/dev/null | awk '{print $3}')"
   INSTALLED_VERSION="$(newt -version 2>/dev/null | awk '{print $3}')"
 
-  # Check for --accept-clients, --native or --docker-socket flags
+  # Check for --accept-clients (deprecated), --disable-clients, --native or --docker-socket flags
   if [[ $exec_start_line == *"--accept-clients"* ]]; then
       NEWT_CLIENTS="y"
   elif [[ ${exec_start_line,,} == *"--disable-clients true"* ]]; then
@@ -80,7 +80,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   fi
 
   echo -e "${BOLD}==================================================================${NC}"
-  echo -e "${BOLD}Captured existing Newt info from ${ITALIC}${GREEN}${SERVICE_FILE}${NC}:"
+  echo -e "${BOLD}Captured existing Newt Site info from ${ITALIC}${GREEN}${SERVICE_FILE}${NC}:"
   echo -e "${BOLD}==================================================================${NC}"
   echo -e "  Site ID: ${ITALIC}${YELLOW}${SITE_ID}${NC}"
   echo -e "  Site Secret: ${ITALIC}${YELLOW}${SITE_SECRET}${NC}"
@@ -104,7 +104,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
           echo ""
           echo -e "${YELLOW}🚀 Initiating Newt Service Re-installation...${NC}"
 
-          # Capture default/user provided NEWT ID, SECRET and Pangolin Endpoint
+          # Capture default/user provided NEWT Site ID, SECRET and Pangolin Endpoint
           SITE_ID=$(prompt_with_default "Provide Site ID." "$SITE_ID")
           SITE_SECRET=$(prompt_with_default "Provide Site Secret." "$SITE_SECRET")
           PANGOLIN_ENDPOINT=$(prompt_with_default "Provide Pangolin Endpoint." "$PANGOLIN_ENDPOINT")
@@ -228,7 +228,7 @@ fi
 if [[ "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
     read -r -d '' SERVICE_CONTENT << EOF1
 [Unit]
-Description=Newt VPN Client Service (Native Mode)
+Description=Newt Site Client Service (Native Mode)
 After=network-online.target
 Wants=network-online.target
 
@@ -248,7 +248,7 @@ EOF1
 else
     read -r -d '' SERVICE_CONTENT << EOF2
 [Unit]
-Description=Newt VPN Client Service
+Description=Newt Site Client Service
 After=network-online.target
 Wants=network-online.target
 
@@ -311,7 +311,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
 fi
 # Write the content to the service file
 echo "$SERVICE_CONTENT" | tee "$SERVICE_FILE" > /dev/null
-echo -e "🗒️ ===> Systemd service file (re)created at ${BOLD}${GREEN}$SERVICE_FILE${NC} with provided NEWT VPN Client details. <==="
+echo -e "🗒️ ===> Systemd service file (re)created at ${BOLD}${GREEN}$SERVICE_FILE${NC} with provided NEWT Site Client details. <==="
 echo ""
 echo -e "${BOLD}${YELLOW}⚙️ Enabling/Starting the service after daemon-reload...${NC}"
 echo ""
@@ -323,7 +323,7 @@ systemctl start $SERVICE_NAME
 systemctl status $SERVICE_NAME
 echo ""
 echo -e "${BOLD}===========================================${NC}"
-echo -e "${BOLD}${GREEN}Newt Client Service installed. 👋 Goodbye!${NC}"
+echo -e "${BOLD}${GREEN}Newt Site Client Service installed. 👋 Goodbye!${NC}"
 echo -e "${BOLD}===========================================${NC}"
 echo ""
 exit 0
