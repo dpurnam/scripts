@@ -1,5 +1,5 @@
 #!/bin/bash
-# Newt VPN Client Service Manager (Removal/Installer/Updater) Script for Debain - as a Service unit
+# Newt Client Service Manager (Removal/Installer/Updater) Script for Debain - as a Service unit
 # REF: https://docs.fossorial.io/Newt
 
 # Usage Instructions:
@@ -12,7 +12,7 @@
 #set -euo pipefail
 
 # Get the 'latest' release tag for the newt client, from GitHub API
-LATEST_RELEASE_TAG=$(curl -sL "https://api.github.com/repos/fosrl/newt/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+LATEST_RELEASE_TAG=$(curl -fsSL https://api.github.com/repos/fosrl/newt/releases/latest | sed -n 's/.*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p')
 
 # ANSI color codes
 RED='\e[31m'
@@ -35,8 +35,8 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-# Initialize variables to 'N' by default, assuming they are not present
-NEWT_CLIENTS="N"
+# Initialize variables
+NEWT_CLIENTS="Y"
 NEWT_NATIVE="N"
 DOCKER_SOCKET="N"
 
@@ -54,38 +54,45 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   exec_start_line=$(grep '^ExecStart=' "${SERVICE_FILE}")
 
   # Extract ID
-  NEWT_ID=$(echo "${exec_start_line}" | awk -F'--id ' '{print $2}' | awk '{print $1}')
+  SITE_ID=$(echo "${exec_start_line}" | awk -F'--id ' '{print $2}' | awk '{print $1}')
   # Extract Secret
-  NEWT_SECRET=$(echo "${exec_start_line}" | awk -F'--secret ' '{print $2}' | awk '{print $1}')
+  SITE_SECRET=$(echo "${exec_start_line}" | awk -F'--secret ' '{print $2}' | awk '{print $1}')
   # Extract Endpoint
   PANGOLIN_ENDPOINT=$(echo "${exec_start_line}" | awk -F'--endpoint ' '{print $2}' | awk '{print $1}')
+  # Get current binary version
+  #INSTALLED_VERSION="$("$NEWT_BIN_PATH" -version 2>/dev/null | awk '{print $3}')"
+  INSTALLED_VERSION="$(newt -version 2>/dev/null | awk '{print $3}')"
 
   # Check for --accept-clients, --native or --docker-socket flags
-  if echo "${exec_start_line}" | grep -q -- --accept-clients; then
-    NEWT_CLIENTS="y"
+  if [[ $exec_start_line == *"--accept-clients"* ]]; then
+      NEWT_CLIENTS="y"
+  elif [[ ${exec_start_line,,} == *"--disable-clients true"* ]]; then
+      NEWT_CLIENTS="n"
   fi
-  if echo "${exec_start_line}" | grep -q -- --native; then
+
+  if [[ $exec_start_line == *"--native"* ]]; then
     NEWT_NATIVE="y"
   fi
-  if echo "${exec_start_line}" | grep -q -- --docker-socket; then
-    DOCKER_SOCKET="y"
-    DOCKER_SOCKET_PATH="$(echo "${exec_start_line}" | sed -n 's/.*--docker-socket \(\S\+\).*/\1/p')"
+
+  if [[ $exec_start_line =~ --docker-socket[[:space:]]+\"?([^\"[:space:]]+)\"? ]]; then
+      DOCKER_SOCKET="y"
+      DOCKER_SOCKET_PATH="${BASH_REMATCH[1]}"
   fi
 
   echo -e "${BOLD}==================================================================${NC}"
   echo -e "${BOLD}Captured existing Newt info from ${ITALIC}${GREEN}${SERVICE_FILE}${NC}:"
   echo -e "${BOLD}==================================================================${NC}"
-  echo -e "  ID: ${ITALIC}${YELLOW}${NEWT_ID}${NC}"
-  echo -e "  Secret: ${ITALIC}${YELLOW}${NEWT_SECRET}${NC}"
+  echo -e "  Site ID: ${ITALIC}${YELLOW}${SITE_ID}${NC}"
+  echo -e "  Site Secret: ${ITALIC}${YELLOW}${SITE_SECRET}${NC}"
   echo -e "  Endpoint: ${ITALIC}${YELLOW}${PANGOLIN_ENDPOINT}${NC}"
-  echo -e "  Accept Newt/OLM Clients Access: ${ITALIC}${YELLOW}${NEWT_CLIENTS}${NC}"
+  echo -e "  Enable Pangolin/OLM Clients Access: ${ITALIC}${YELLOW}${NEWT_CLIENTS}${NC}"
   echo -e "  Enable Newt Native Mode: ${ITALIC}${YELLOW}${NEWT_NATIVE}${NC}"
   echo -e "  Enable Docker Socket Access: ${ITALIC}${YELLOW}${DOCKER_SOCKET}${NC}"
   echo -e "  Docker Socket Path: ${ITALIC}${YELLOW}${DOCKER_SOCKET_PATH}${NC}"
   echo -e "${BOLD}==================================================================${NC}"
   echo ""
 
-  read -p "$(echo -e "${BOLD}Upgrade${NC} to latest version (${LATEST_RELEASE_TAG}) or ${BOLD}Remove${NC} the current one ($(newt -version | awk '{print $3}'))? ${BOLD}${ITALIC}${YELLOW}[${GREEN}u${YELLOW}/${RED}R${YELLOW}]${NC}: ")" CONFIRM_UPGRADE_REMOVE < /dev/tty
+  read -p "$(echo -e "${BOLD}Upgrade${NC} to latest version (${LATEST_RELEASE_TAG}) or ${BOLD}Remove${NC} the current one (${INSTALLED_VERSION:-unknown})? ${BOLD}${ITALIC}${YELLOW}[${GREEN}u${YELLOW}/${RED}R${YELLOW}]${NC}: ")" CONFIRM_UPGRADE_REMOVE < /dev/tty
   if [[ ! "${CONFIRM_UPGRADE_REMOVE}" =~ ^[Rr]$ ]]; then
       read -p "$(echo -e "Proceed with ${BOLD}ALL the existing${NC} values? ${BOLD}${ITALIC}${YELLOW}[${GREEN}y${YELLOW}/${RED}N${YELLOW}]${NC}: ")" CONFIRM_PROCEED < /dev/tty
       if [[ ! "${CONFIRM_PROCEED}" =~ ^[Yy]$ ]]; then
@@ -98,8 +105,8 @@ if [[ -f "${SERVICE_FILE}" ]]; then
           echo -e "${YELLOW}🚀 Initiating Newt Service Re-installation...${NC}"
 
           # Capture default/user provided NEWT ID, SECRET and Pangolin Endpoint
-          NEWT_ID=$(prompt_with_default "Provide Newt Client ID." "$NEWT_ID")
-          NEWT_SECRET=$(prompt_with_default "Provide Newt Client Secret." "$NEWT_SECRET")
+          SITE_ID=$(prompt_with_default "Provide Site ID." "$SITE_ID")
+          SITE_SECRET=$(prompt_with_default "Provide Site Secret." "$SITE_SECRET")
           PANGOLIN_ENDPOINT=$(prompt_with_default "Provide Pangolin Endpoint." "$PANGOLIN_ENDPOINT")
 
           read -p "$(echo -e "Enable ${BOLD}Docker Socket${NC} Access? ${BOLD}${ITALIC}${YELLOW}[${GREEN}y${YELLOW}/${RED}N${YELLOW}]${NC}: ")" DOCKER_SOCKET < /dev/tty
@@ -109,10 +116,9 @@ if [[ -f "${SERVICE_FILE}" ]]; then
               else
                   DOCKER_SOCKET_PATH=$(prompt_with_default "Provide Docker Socket Path." "$DOCKER_SOCKET_PATH")
               fi
-              #DOCKER_SOCKET_PATH=$(prompt_with_default "Provide Docker Socket Path." "$DOCKER_SOCKET_PATH")
           fi
           
-          read -p "$(echo -e "Enable ${BOLD}OLM Clients${NC} Access? ${BOLD}${ITALIC}${YELLOW}[${GREEN}y${YELLOW}/${RED}N${YELLOW}]${NC}: ")" NEWT_CLIENTS < /dev/tty
+          read -p "$(echo -e "Enable ${BOLD}Pangolin/OLM Clients${NC} Access? ${BOLD}${ITALIC}${YELLOW}[${GREEN}y${YELLOW}/${RED}N${YELLOW}]${NC}: ")" NEWT_CLIENTS < /dev/tty
           read -p "$(echo -e "Enable ${BOLD}Native${NC} Mode? ${BOLD}${ITALIC}${YELLOW}[${GREEN}y${YELLOW}/${RED}N${YELLOW}]${NC}: ")" NEWT_NATIVE < /dev/tty
         fi
       fi
@@ -134,14 +140,14 @@ if [[ -f "${SERVICE_FILE}" ]]; then
 else
   echo ""
   echo -e "${YELLOW}🚀 Initiating Newt Service Installation...${NC}"
-  read -p "$(echo -e "Provide Newt ${BOLD}Client ID${NC}: ")" NEWT_ID < /dev/tty
-  read -p "$(echo -e "Provide Newt ${BOLD}Client Secret${NC}: ")" NEWT_SECRET < /dev/tty
+  read -p "$(echo -e "Provide ${BOLD}Site ID${NC}: ")" SITE_ID < /dev/tty
+  read -p "$(echo -e "Provide ${BOLD}Site Secret${NC}: ")" SITE_SECRET < /dev/tty
   read -p "$(echo -e "Provide ${BOLD}Pangolin Endpoint${NC} (ex. ${ITALIC}https://pangolin.yourdomain.com${NC}): ")" PANGOLIN_ENDPOINT < /dev/tty
   read -p "$(echo -e "Enable ${BOLD}Docker Socket${NC} Access ${BOLD}${YELLOW}${ITALIC}(y/N)${NC}: ")" DOCKER_SOCKET < /dev/tty
   if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
     read -p "$(echo -e "Provide ${BOLD}Docker Socket Path${NC} (ex. ${ITALIC}/var/run/docker.sock${NC}): ")" DOCKER_SOCKET_PATH < /dev/tty
   fi
-  read -p "$(echo -e "Enable ${BOLD}OLM Clients${NC} Access? ${BOLD}${YELLOW}${ITALIC}(y/N)${NC}: ")" NEWT_CLIENTS < /dev/tty
+  read -p "$(echo -e "Enable ${BOLD}Pangolin/OLM Clients${NC} Access? ${BOLD}${YELLOW}${ITALIC}(y/N)${NC}: ")" NEWT_CLIENTS < /dev/tty
   read -p "$(echo -e "Enable ${BOLD}Native${NC} Mode ${BOLD}${YELLOW}${ITALIC}(y/N)${NC}: ")" NEWT_NATIVE < /dev/tty
   echo ""
 fi
@@ -208,14 +214,16 @@ fi
 # --- End of Newt Binary Section ---
 
 # Initialize ExecStartValue
-ExecStartValue="$NEWT_BIN_PATH --id ${NEWT_ID} --secret ${NEWT_SECRET} --endpoint ${PANGOLIN_ENDPOINT} --health-file /tmp/newt-healthy"
+ExecStartValue="$NEWT_BIN_PATH --id ${SITE_ID} --secret ${SITE_SECRET} --endpoint ${PANGOLIN_ENDPOINT} --health-file /tmp/newt-healthy"
 
-# Conditionally add --accept-clients, --native or --docker-socket flags - ONLY for Upgrade Choice
-if [[ "${NEWT_CLIENTS}" =~ ^[Yy]$ ]]; then
-    ExecStartValue="${ExecStartValue} --accept-clients"
+# Conditionally add --disable-clients, --native or --docker-socket flags - ONLY for Upgrade Choice
+if [[ "${NEWT_CLIENTS}" =~ ^[Nn]$ ]]; then
+    ExecStartValue+=" --disable-clients true"
 fi
-if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ && -n "${DOCKER_SOCKET_PATH}" ]]; then
-    ExecStartValue="${ExecStartValue} --docker-socket ${DOCKER_SOCKET_PATH}"
+if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
+    DOCKER_SOCKET_PATH="${DOCKER_SOCKET_PATH//[[:space:]]/}"
+    : "${DOCKER_SOCKET_PATH:=/var/run/docker.sock}"
+    ExecStartValue+=" --docker-socket ${DOCKER_SOCKET_PATH}"
 fi
 if [[ "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
     read -r -d '' SERVICE_CONTENT << EOF1
@@ -315,7 +323,7 @@ systemctl start $SERVICE_NAME
 systemctl status $SERVICE_NAME
 echo ""
 echo -e "${BOLD}===========================================${NC}"
-echo -e "${BOLD}${GREEN}Newt VPN Client Service installed. 👋 Goodbye!${NC}"
+echo -e "${BOLD}${GREEN}Newt Client Service installed. 👋 Goodbye!${NC}"
 echo -e "${BOLD}===========================================${NC}"
 echo ""
 exit 0
