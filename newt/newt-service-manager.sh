@@ -1,9 +1,8 @@
 #!/bin/bash
-# Newt Client Service Manager (Removal/Installer/Updater) Script for Debain - as a Service unit
+# Newt Client Service Manager (Removal/Installer/Updater) Script for Debian - as a Service unit
 # REF: https://docs.fossorial.io/Newt
 
 # Usage Instructions:
-# Create a local bash script file Simply execute the command below or create a local bash script to do so
 # curl -sL https://raw.githubusercontent.com/dpurnam/scripts/main/newt/newt-service-manager.sh | sudo bash
 
 # Assumptions:
@@ -11,8 +10,7 @@
 
 #set -euo pipefail
 
- #!/bin/bash
-# ensure we're running with bash (re-exec under /bin/bash if not)
+# Ensure we're running with bash (re-exec under /bin/bash if not)
 if [ -z "$BASH_VERSION" ]; then
   exec /bin/bash "$0" "$@"
 fi
@@ -51,7 +49,7 @@ normalize_docker_socket() {
   local raw="$1"
   # remove surrounding whitespace
   raw="${raw//[[:space:]]/}"
-  # remove any existing unix:// prefix (case-sensitive)
+  # remove any existing unix:// prefix
   raw="${raw#unix://}"
   # if empty, default to /var/run/docker.sock
   if [[ -z "$raw" ]]; then
@@ -62,7 +60,6 @@ normalize_docker_socket() {
 
 # --- Capture Existing Info ---
 if [[ -f "${SERVICE_FILE}" ]]; then
-  # 
   prompt_with_default() {
     local prompt="$1"
     local default="$2"
@@ -70,8 +67,9 @@ if [[ -f "${SERVICE_FILE}" ]]; then
     read -p "$(echo -e "${BOLD}$prompt${NC} or hit enter to use (${BOLD}${GREEN}$default${NC}): ")" var_input < /dev/tty
     echo "${var_input:-$default}"
   }
+
   # Get the ExecStart line
-  exec_start_line=$(grep '^ExecStart=' "${SERVICE_FILE}")
+  exec_start_line=$(grep '^ExecStart=' "${SERVICE_FILE}" || true)
 
   # Extract ID
   SITE_ID=$(echo "${exec_start_line}" | awk -F'--id ' '{print $2}' | awk '{print $1}')
@@ -80,8 +78,6 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   # Extract Endpoint
   PANGOLIN_ENDPOINT=$(echo "${exec_start_line}" | awk -F'--endpoint ' '{print $2}' | awk '{print $1}')
   # Get current binary version
-  #INSTALLED_VERSION="$("$NEWT_BIN_PATH" -version 2>/dev/null | awk '{print $3}')"
-  # INSTALLED_VERSION="$(newt -version 2>/dev/null | awk '{print $3}')"
   INSTALLED_VERSION="$(newt -version 2>/dev/null | sed -nE 's/.*[Vv]ersion[[:space:]]+([0-9.]+).*/\1/p' | head -n1)"
 
   # Check for --accept-clients (deprecated), --disable-clients, --native or --docker-socket flags
@@ -115,7 +111,8 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   echo -e "${BOLD}==================================================================${NC}"
   echo ""
 
-  read -p "$(echo -e "${BOLD}Upgrade${NC} to latest version (${LATEST_RELEASE_TAG}) or ${BOLD}Remove${NC} the current one (${INSTALLED_VERSION:-unknown})? ${BOLD}${ITALIC}${YELLOW}[${GREEN}u${YELLOW}/[...]
+  read -p "$(echo -e "${BOLD}Upgrade${NC} to latest version (${LATEST_RELEASE_TAG}) or ${BOLD}Remove${NC} the current one (${INSTALLED_VERSION:-unknown})? ${BOLD}${ITALIC}${YELLOW}[${GREEN}u${YELLOW}/${RED}r${YELLOW}]${NC}: ")" CONFIRM_UPGRADE_REMOVE < /dev/tty
+
   if [[ ! "${CONFIRM_UPGRADE_REMOVE}" =~ ^[Rr]$ ]]; then
       read -p "$(echo -e "Proceed with ${BOLD}ALL the existing${NC} values? ${BOLD}${ITALIC}${YELLOW}[${GREEN}y${YELLOW}/${RED}N${YELLOW}]${NC}: ")" CONFIRM_PROCEED < /dev/tty
       if [[ ! "${CONFIRM_PROCEED}" =~ ^[Yy]$ ]]; then
@@ -137,7 +134,9 @@ if [[ -f "${SERVICE_FILE}" ]]; then
               if [[ -z "${DOCKER_SOCKET_PATH}" ]]; then
                   DOCKER_SOCKET_PATH=$(prompt_with_default "Provide Docker Socket Path." "/var/run/docker.sock")
               else
-                  DOCKER_SOCKET_PATH=$(prompt_with_default "Provide Docker Socket Path." "$DOCKER_SOCKET_PATH")
+                  # prompt_with_default shows the normalized path (unix://...), strip the prefix for user clarity
+                  current_path_display="${DOCKER_SOCKET_PATH#unix://}"
+                  DOCKER_SOCKET_PATH=$(prompt_with_default "Provide Docker Socket Path." "${current_path_display}")
               fi
               # normalize to ensure the path is unix:// prefixed
               DOCKER_SOCKET_PATH=$(normalize_docker_socket "$DOCKER_SOCKET_PATH")
@@ -149,14 +148,16 @@ if [[ -f "${SERVICE_FILE}" ]]; then
       fi
   else
       # --- Newt Service Removal ---
-      systemctl stop $SERVICE_NAME
-      systemctl disable $SERVICE_NAME
-      rm /etc/systemd/system/$SERVICE_NAME
+      systemctl stop $SERVICE_NAME || true
+      systemctl disable $SERVICE_NAME || true
+      rm -f "${SERVICE_FILE}"
       systemctl daemon-reload
       getent passwd newt >/dev/null && userdel -r newt
       getent group newt >/dev/null && groupdel newt
       rm -rf "${NEWT_LIB_PATH}"
-      rm "$NEWT_BIN_PATH"
+      if [[ -f "${NEWT_BIN_PATH}" ]]; then
+        rm -f "$NEWT_BIN_PATH"
+      fi
       echo -e "${BOLD}${YELLOW}Removed Newt Service user, group and service. 👋 Goodbye!${NC}"
       exit 0
   fi
@@ -215,14 +216,7 @@ if [ -z "${RELEASE_URL}" ]; then
     exit 1 # Exit if we can't get the latest version tag
 else
     echo -e "🔍 New release url found: ${YELLOW}$RELEASE_URL${NC}"
-    # Construct the download URL using the found tag name and detected architecture
-    #DOWNLOAD_URL="https://github.com/fosrl/newt/releases/download/${LATEST_RELEASE_URL}/newt_linux_${NEWT_ARCH}"
     DOWNLOAD_URL="${RELEASE_URL}"
-    # Check if the binary already exists and is the latest version (optional but good practice)
-    # This part is complex without knowing the installed version, so we'll just download and replace
-    # if [ -f "$NEWT_BIN_PATH" ] && "$NEWT_BIN_PATH" --version 2>/dev/null | grep -q "$LATEST_RELEASE_URL"; then
-    #   echo "Newt binary is already the latest version ($LATEST_RELEASE_URL). Skipping download."
-    # else
     echo -e "⬇ Attempting to download ${YELLOW}Newt binary for ${ARCH}${NC}..."
     if ! wget -q -O /tmp/newt_temp -L "$DOWNLOAD_URL"; then
       echo -e "${RED}❌ Error: Failed to download Newt binary from $DOWNLOAD_URL.${NC}"
@@ -312,9 +306,9 @@ EOF2
     elif [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]] && ! getent group docker >/dev/null; then
         if ! getent passwd newt >/dev/null; then
             useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
-            echo -e "Although standard ${RED}docker${NC} group not found, 🦰 ${GREEN}Newt${NC} Service User is ${BOLD}created${NC}. 💡 ${BOLD}${RED}REMEMBER${NC} to add it to your ${BOLD}${YELLOW}[...]
+            echo -e "Although standard ${RED}docker${NC} group not found, 🦰 ${GREEN}Newt${NC} Service User is ${BOLD}created${NC}. 💡 ${BOLD}${RED}REMEMBER${NC} to add it to your docker group if you need socket access."
         else
-            echo -e "Although standard ${RED}docker${NC} group not found, 🦰 ${GREEN}Newt${NC} Service User ${BOLD}already exists${NC}. 💡 ${BOLD}${RED}REMEMBER${NC} to add it to your ${BOLD}${YEL[...]
+            echo -e "Although standard ${RED}docker${NC} group not found, 🦰 ${GREEN}Newt${NC} Service User ${BOLD}already exists${NC}. 💡 ${BOLD}${RED}REMEMBER${NC} to add it to your docker group if you need socket access."
         fi
     elif getent passwd newt >/dev/null && id -nG "newt" | grep -qw "docker"; then
         gpasswd -d newt docker
@@ -334,7 +328,7 @@ fi
 
 # Stop the Service, if it exists
 if [[ -f "${SERVICE_FILE}" ]]; then
-    systemctl stop $SERVICE_NAME
+    systemctl stop $SERVICE_NAME || true
 fi
 # Write the content to the service file
 echo "$SERVICE_CONTENT" | tee "$SERVICE_FILE" > /dev/null
