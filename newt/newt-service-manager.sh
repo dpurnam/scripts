@@ -40,6 +40,20 @@ NEWT_CLIENTS="Y"
 NEWT_NATIVE="N"
 DOCKER_SOCKET="N"
 
+# --- Helper: normalize docker socket path to always include unix:// prefix ---
+normalize_docker_socket() {
+  local raw="$1"
+  # remove surrounding whitespace
+  raw="${raw//[[:space:]]/}"
+  # remove any existing unix:// prefix (case-sensitive)
+  raw="${raw#unix://}"
+  # if empty, default to /var/run/docker.sock
+  if [[ -z "$raw" ]]; then
+    raw="/var/run/docker.sock"
+  fi
+  echo "unix://${raw}"
+}
+
 # --- Capture Existing Info ---
 if [[ -f "${SERVICE_FILE}" ]]; then
   # 
@@ -77,7 +91,9 @@ if [[ -f "${SERVICE_FILE}" ]]; then
 
   if [[ $exec_start_line =~ --docker-socket[[:space:]]+\"?([^\"[:space:]]+)\"? ]]; then
       DOCKER_SOCKET="y"
-      DOCKER_SOCKET_PATH="${BASH_REMATCH[1]}"
+      raw_socket="${BASH_REMATCH[1]}"
+      # normalize so DOCKER_SOCKET_PATH is always unix://prefixed
+      DOCKER_SOCKET_PATH=$(normalize_docker_socket "$raw_socket")
   fi
 
   echo -e "${BOLD}==================================================================${NC}"
@@ -93,7 +109,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   echo -e "${BOLD}==================================================================${NC}"
   echo ""
 
-  read -p "$(echo -e "${BOLD}Upgrade${NC} to latest version (${LATEST_RELEASE_TAG}) or ${BOLD}Remove${NC} the current one (${INSTALLED_VERSION:-unknown})? ${BOLD}${ITALIC}${YELLOW}[${GREEN}u${YELLOW}/${RED}R${YELLOW}]${NC}: ")" CONFIRM_UPGRADE_REMOVE < /dev/tty
+  read -p "$(echo -e "${BOLD}Upgrade${NC} to latest version (${LATEST_RELEASE_TAG}) or ${BOLD}Remove${NC} the current one (${INSTALLED_VERSION:-unknown})? ${BOLD}${ITALIC}${YELLOW}[${GREEN}u${YELLOW}/[...]
   if [[ ! "${CONFIRM_UPGRADE_REMOVE}" =~ ^[Rr]$ ]]; then
       read -p "$(echo -e "Proceed with ${BOLD}ALL the existing${NC} values? ${BOLD}${ITALIC}${YELLOW}[${GREEN}y${YELLOW}/${RED}N${YELLOW}]${NC}: ")" CONFIRM_PROCEED < /dev/tty
       if [[ ! "${CONFIRM_PROCEED}" =~ ^[Yy]$ ]]; then
@@ -117,6 +133,8 @@ if [[ -f "${SERVICE_FILE}" ]]; then
               else
                   DOCKER_SOCKET_PATH=$(prompt_with_default "Provide Docker Socket Path." "$DOCKER_SOCKET_PATH")
               fi
+              # normalize to ensure the path is unix:// prefixed
+              DOCKER_SOCKET_PATH=$(normalize_docker_socket "$DOCKER_SOCKET_PATH")
           fi
           
           read -p "$(echo -e "Enable ${BOLD}Pangolin/OLM Clients${NC} Access? ${BOLD}${ITALIC}${YELLOW}[${GREEN}y${YELLOW}/${RED}N${YELLOW}]${NC}: ")" NEWT_CLIENTS < /dev/tty
@@ -147,6 +165,8 @@ else
   read -p "$(echo -e "Enable ${BOLD}Docker Socket${NC} Access ${BOLD}${YELLOW}${ITALIC}(y/N)${NC}: ")" DOCKER_SOCKET < /dev/tty
   if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
     read -p "$(echo -e "Provide ${BOLD}Docker Socket Path${NC} (ex. ${ITALIC}/var/run/docker.sock${NC}): ")" DOCKER_SOCKET_PATH < /dev/tty
+    # normalize user provided path so it's always unix:// prefixed
+    DOCKER_SOCKET_PATH=$(normalize_docker_socket "$DOCKER_SOCKET_PATH")
   fi
   read -p "$(echo -e "Enable ${BOLD}Pangolin/OLM Clients${NC} Access? ${BOLD}${YELLOW}${ITALIC}(y/N)${NC}: ")" NEWT_CLIENTS < /dev/tty
   read -p "$(echo -e "Enable ${BOLD}Native${NC} Mode ${BOLD}${YELLOW}${ITALIC}(y/N)${NC}: ")" NEWT_NATIVE < /dev/tty
@@ -222,8 +242,8 @@ if [[ "${NEWT_CLIENTS}" =~ ^[Nn]$ ]]; then
     ExecStartValue+=" --disable-clients true"
 fi
 if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
-    DOCKER_SOCKET_PATH="${DOCKER_SOCKET_PATH//[[:space:]]/}"
-    : "${DOCKER_SOCKET_PATH:=/var/run/docker.sock}"
+    # Normalize DOCKER_SOCKET_PATH here to ensure 'unix://' prefix and sensible default
+    DOCKER_SOCKET_PATH=$(normalize_docker_socket "${DOCKER_SOCKET_PATH}")
     ExecStartValue+=" --docker-socket ${DOCKER_SOCKET_PATH}"
 fi
 if [[ "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
@@ -286,9 +306,9 @@ EOF2
     elif [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]] && ! getent group docker >/dev/null; then
         if ! getent passwd newt >/dev/null; then
             useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
-            echo -e "Although standard ${RED}docker${NC} group not found, 🦰 ${GREEN}Newt${NC} Service User is ${BOLD}created${NC}. 💡 ${BOLD}${RED}REMEMBER${NC} to add it to your ${BOLD}${YELLOW}custom docker${NC} group!"
+            echo -e "Although standard ${RED}docker${NC} group not found, 🦰 ${GREEN}Newt${NC} Service User is ${BOLD}created${NC}. 💡 ${BOLD}${RED}REMEMBER${NC} to add it to your ${BOLD}${YELLOW}[...]
         else
-            echo -e "Although standard ${RED}docker${NC} group not found, 🦰 ${GREEN}Newt${NC} Service User ${BOLD}already exists${NC}. 💡 ${BOLD}${RED}REMEMBER${NC} to add it to your ${BOLD}${YELLOW}custom docker${NC} group!"
+            echo -e "Although standard ${RED}docker${NC} group not found, 🦰 ${GREEN}Newt${NC} Service User ${BOLD}already exists${NC}. 💡 ${BOLD}${RED}REMEMBER${NC} to add it to your ${BOLD}${YEL[...]
         fi
     elif getent passwd newt >/dev/null && id -nG "newt" | grep -qw "docker"; then
         gpasswd -d newt docker
