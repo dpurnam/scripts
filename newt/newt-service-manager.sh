@@ -11,6 +11,12 @@
 
 #set -euo pipefail
 
+ #!/bin/bash
+# ensure we're running with bash (re-exec under /bin/bash if not)
+if [ -z "$BASH_VERSION" ]; then
+  exec /bin/bash "$0" "$@"
+fi
+
 # Get the 'latest' release tag for the newt client, from GitHub API
 LATEST_RELEASE_TAG=$(curl -fsSL https://api.github.com/repos/fosrl/newt/releases/latest | sed -n 's/.*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p')
 
