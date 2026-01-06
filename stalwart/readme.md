@@ -14,7 +14,7 @@ Stalwart Backup/Restore Manager (swmanage)
 - Local Compression/Decompression before/after upload/download
 
 ## Pre-requisites
-- A functional/healthy **Stalwart Mail Server** docker container (and its JMAP/WebAdmin access URL)
+- A functional/healthy **Stalwart Mail Server** docker container (and its JMAP/WebAdmin access URL) only upto v0.14.x
 - A functional/healthy **PostgresSQL DB** running on the host and configured as backed store in Stalwart
 
 ## Usage
