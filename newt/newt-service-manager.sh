@@ -55,7 +55,8 @@ normalize_docker_socket() {
   if [[ -z "$raw" ]]; then
     raw="/var/run/docker.sock"
   fi
-  echo "unix://${raw}"
+  # echo "unix://${raw}"
+  echo "${raw}"
 }
 
 # --- Capture Existing Info ---
@@ -239,7 +240,8 @@ ExecStartValue="$NEWT_BIN_PATH --id ${SITE_ID} --secret ${SITE_SECRET} --endpoin
 
 # Conditionally add --disable-clients, --native or --docker-socket flags - ONLY for Upgrade Choice
 if [[ "${NEWT_CLIENTS}" =~ ^[Nn]$ ]]; then
-    ExecStartValue+=" --disable-clients true"
+    # ExecStartValue+=" --disable-clients true"
+    ExecStartValue+=" --disable-clients"
 fi
 if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
     # Normalize DOCKER_SOCKET_PATH here to ensure 'unix://' prefix and sensible default
