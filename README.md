@@ -21,7 +21,7 @@
   - **[Full Backup/Restore Manager](https://github.com/dpurnam/scripts/tree/main/stalwart)**
     -  Complete backup or restore of PostgresSQL DB and all (or pre-defined list of) Accounts - `Individual type Principals`
     -  Compression and Encryption before/after syncing with desired Storage Provider via `rclone`
-    -  Compatibility: Only upto v0.14.x
+    -  Compatibility: Tested upto v0.15.x
 
 -----
 - Device Availability Manager - **[WakeMyPotata](https://github.com/dpurnam/scripts/tree/main/WakeMyPotata)**
