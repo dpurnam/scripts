@@ -44,7 +44,7 @@ NEWT_CLIENTS="Y"
 NEWT_NATIVE="N"
 DOCKER_SOCKET="N"
 CONFIRM_PROCEED="Y"
-CONFIRM_PROVIDE="N"
+CONFIRM_PROVIDE="Y"
 CONFIRM_UPGRADE_REMOVE="U"
 
 # --- Helper: normalize docker socket path to always include unix:// prefix ---
@@ -166,7 +166,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   echo -e "${BOLD}==================================================================${NC}"
   echo ""
 
-  read -p "$(echo -e "${BOLD}Upgrade${NC} to latest version (${LATEST_RELEASE_TAG}) or ${BOLD}Remove${NC} the current one (${INSTALLED_VERSION:-unknown})? ${BOLD}${ITALIC}${YELLOW}[ ${GREEN}u${YELLOW} / ${RED}r${YELLOW} ]${NC}: ")" CONFIRM_UPGRADE_REMOVE < /dev/tty
+  read -p "$(echo -e "${BOLD}Upgrade${NC} to latest version (${LATEST_RELEASE_TAG}) or ${BOLD}Remove${NC} the current one (${INSTALLED_VERSION:-unknown})? ${BOLD}${ITALIC}${YELLOW}[ ${GREEN}U (default)${YELLOW} / ${RED}R${YELLOW} ]${NC}: ")" input_confirm_upgrade_remove < /dev/tty
   CONFIRM_UPGRADE_REMOVE="${input_confirm_upgrade_remove:-$CONFIRM_UPGRADE_REMOVE}"
 
   if [[ ! "${CONFIRM_UPGRADE_REMOVE,,}" == "r" ]]; then
@@ -174,7 +174,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
       CONFIRM_PROCEED="${input_confirm_proceed:-$CONFIRM_PROCEED}"
       
       if [[ ! "${CONFIRM_PROCEED,,}" == "y" ]]; then
-        read -p "$(echo -e "Provide ${BOLD}New${NC} values? ${BOLD}${ITALIC}${YELLOW}[ ${GREEN}Y${YELLOW} / ${RED}N (default)${YELLOW} ]${NC}: ")" input_confirm_provide < /dev/tty
+        read -p "$(echo -e "Provide ${BOLD}New${NC} values? ${BOLD}${ITALIC}${YELLOW}[ ${GREEN}Y (default)${YELLOW} / ${RED}N${YELLOW} ]${NC}: ")" input_confirm_provide < /dev/tty
         CONFIRM_PROVIDE="${input_confirm_provide:-$CONFIRM_PROVIDE}"
         
         if [[ ! "${CONFIRM_PROVIDE,,}" == "y" ]]; then
