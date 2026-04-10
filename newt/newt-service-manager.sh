@@ -1,5 +1,5 @@
 #!/bin/bash
-# Newt Client Service Manager (Removal/Installer/Updater) Script for Debian - as a Service unit
+# Newt Site Service Manager (Removal/Installer/Updater) Script for Debian - as a Service unit
 # REF: https://docs.fossorial.io/Newt
 
 # Usage Instructions:
@@ -15,7 +15,7 @@ if [ -z "$BASH_VERSION" ]; then
   exec /bin/bash "$0" "$@"
 fi
 
-# Get the 'latest' release tag for the newt client, from GitHub API
+# Get the 'latest' release tag for the newt binary, from GitHub API
 LATEST_RELEASE_TAG=$(curl -fsSL https://api.github.com/repos/fosrl/newt/releases/latest | sed -n 's/.*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p')
 
 # ANSI color codes
@@ -43,6 +43,8 @@ fi
 NEWT_CLIENTS="Y"
 NEWT_NATIVE="N"
 DOCKER_SOCKET="N"
+CONFIRM_PROCEED="Y"
+CONFIRM_PROVIDE="N"
 
 # --- Helper: normalize docker socket path to always include unix:// prefix ---
 normalize_docker_socket() {
@@ -57,6 +59,57 @@ normalize_docker_socket() {
   fi
   # echo "unix://${raw}"
   echo "${raw}"
+}
+
+# --- Helper: newt user setup logic ---
+setup_newt_user() {
+    local docker_socket_flag="$1"   # Y/N
+    local lib_path="$2"
+
+    # Ensure group exists
+    getent group newt >/dev/null || groupadd newt
+
+    # Ensure user exists (base creation if missing)
+    if ! getent passwd newt >/dev/null; then
+        useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
+        user_created="y"
+    else
+        user_created="n"
+    fi
+
+    # Handle Docker socket logic
+    if [[ "$docker_socket_flag" =~ ^[Yy]$ ]]; then
+        if getent group docker >/dev/null; then
+            usermod -aG docker newt
+            if [[ "$user_created" == "y" ]]; then
+                echo -e "🦰 ${GREEN}Newt${NC} Service User has been ${BOLD}created and added${NC} to the ${GREEN}docker${NC} group!"
+            else
+                echo -e "🦰 ${GREEN}Newt${NC} Service User ${BOLD}already exists and has been added${NC} to the ${GREEN}docker${NC} group!"
+            fi
+        else
+            if [[ "$user_created" == "y" ]]; then
+                echo -e "Although ${RED}docker${NC} group not found, 🦰 ${GREEN}Newt${NC} user is ${BOLD}created${NC}. 💡 Add it to your docker group if needed."
+            else
+                echo -e "Although ${RED}docker${NC} group not found, 🦰 ${GREEN}Newt${NC} user ${BOLD}already exists${NC}. 💡 Add it to your docker group if needed."
+            fi
+        fi
+    else
+        # Remove from docker group if present
+        if getent group docker >/dev/null && id -nG newt | grep -qw docker; then
+            gpasswd -d newt docker
+            echo -e "🦰 ${YELLOW}${BOLD}Removed${NC} ${YELLOW}Newt user from docker group!${NC}"
+        else
+            if [[ "$user_created" == "y" ]]; then
+                echo -e "🦰 A regular ${GREEN}Newt${NC} Service User has been ${BOLD}created${NC}!"
+            else
+                echo -e "🦰 A regular ${GREEN}Newt${NC} Service User ${BOLD}already exists${NC}!"
+            fi
+        fi
+    fi
+
+    # Ensure lib directory ownership
+    mkdir -p "$lib_path"
+    chown newt:newt "$lib_path"
 }
 
 # --- Capture Existing Info ---
@@ -115,9 +168,9 @@ if [[ -f "${SERVICE_FILE}" ]]; then
   read -p "$(echo -e "${BOLD}Upgrade${NC} to latest version (${LATEST_RELEASE_TAG}) or ${BOLD}Remove${NC} the current one (${INSTALLED_VERSION:-unknown})? ${BOLD}${ITALIC}${YELLOW}[${GREEN}u${YELLOW}/${RED}r${YELLOW}]${NC}: ")" CONFIRM_UPGRADE_REMOVE < /dev/tty
 
   if [[ ! "${CONFIRM_UPGRADE_REMOVE}" =~ ^[Rr]$ ]]; then
-      read -p "$(echo -e "Proceed with ${BOLD}ALL the existing${NC} values? ${BOLD}${ITALIC}${YELLOW}[${GREEN}y${YELLOW}/${RED}N${YELLOW}]${NC}: ")" CONFIRM_PROCEED < /dev/tty
+      read -p "$(echo -e "Proceed with ${BOLD}ALL the existing${NC} values? ${BOLD}${ITALIC}${YELLOW}[${GREEN}Y (default)${YELLOW} / ${RED}N${YELLOW}]${NC}: ")" CONFIRM_PROCEED < /dev/tty
       if [[ ! "${CONFIRM_PROCEED}" =~ ^[Yy]$ ]]; then
-        read -p "$(echo -e "Provide ${BOLD}New${NC} values? ${BOLD}${ITALIC}${YELLOW}[${GREEN}y${YELLOW}/${RED}N${YELLOW}]${NC}: ")" CONFIRM_PROVIDE < /dev/tty
+        read -p "$(echo -e "Provide ${BOLD}New${NC} values? ${BOLD}${ITALIC}${YELLOW}[${GREEN}Y${YELLOW} / ${RED}N (default)${YELLOW}]${NC}: ")" CONFIRM_PROVIDE < /dev/tty
         if [[ ! "${CONFIRM_PROVIDE}" =~ ^[Yy]$ ]]; then
           echo -e "${RED}Operation cancelled by user.${NC}"
           exit 0 # Exit cleanly if the user doesn't confirm
@@ -130,7 +183,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
           SITE_SECRET=$(prompt_with_default "Provide Site Secret." "$SITE_SECRET")
           PANGOLIN_ENDPOINT=$(prompt_with_default "Provide Pangolin Endpoint." "$PANGOLIN_ENDPOINT")
 
-          read -p "$(echo -e "Enable ${BOLD}Docker Socket${NC} Access? ${BOLD}${ITALIC}${YELLOW}[${GREEN}y${YELLOW}/${RED}N${YELLOW}]${NC}: ")" DOCKER_SOCKET < /dev/tty
+          read -p "$(echo -e "Enable ${BOLD}Docker Socket${NC} Access? ${BOLD}${ITALIC}${YELLOW}[${GREEN}Y${YELLOW} / ${RED}N (default)${YELLOW}]${NC}: ")" DOCKER_SOCKET < /dev/tty
           if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
               if [[ -z "${DOCKER_SOCKET_PATH}" ]]; then
                   DOCKER_SOCKET_PATH=$(prompt_with_default "Provide Docker Socket Path." "/var/run/docker.sock")
@@ -143,8 +196,8 @@ if [[ -f "${SERVICE_FILE}" ]]; then
               DOCKER_SOCKET_PATH=$(normalize_docker_socket "$DOCKER_SOCKET_PATH")
           fi
           
-          read -p "$(echo -e "Enable ${BOLD}Pangolin/OLM Clients${NC} Access? ${BOLD}${ITALIC}${YELLOW}[${GREEN}y${YELLOW}/${RED}N${YELLOW}]${NC}: ")" NEWT_CLIENTS < /dev/tty
-          read -p "$(echo -e "Enable ${BOLD}Native${NC} Mode? ${BOLD}${ITALIC}${YELLOW}[${GREEN}y${YELLOW}/${RED}N${YELLOW}]${NC}: ")" NEWT_NATIVE < /dev/tty
+          read -p "$(echo -e "Enable ${BOLD}Pangolin/OLM Clients${NC} Access? ${BOLD}${ITALIC}${YELLOW}[${GREEN}Y (default)${YELLOW} / ${RED}N${YELLOW}]${NC}: ")" NEWT_CLIENTS < /dev/tty
+          read -p "$(echo -e "Enable ${BOLD}Native${NC} Mode? ${BOLD}${ITALIC}${YELLOW}[${GREEN}Y${YELLOW} / ${RED}N (default)${YELLOW}]${NC}: ")" NEWT_NATIVE < /dev/tty
         fi
       fi
   else
@@ -170,14 +223,14 @@ else
   read -p "$(echo -e "Provide ${BOLD}Site ID${NC}: ")" SITE_ID < /dev/tty
   read -p "$(echo -e "Provide ${BOLD}Site Secret${NC}: ")" SITE_SECRET < /dev/tty
   read -p "$(echo -e "Provide ${BOLD}Pangolin Endpoint${NC} (ex. ${ITALIC}https://pangolin.yourdomain.com${NC}): ")" PANGOLIN_ENDPOINT < /dev/tty
-  read -p "$(echo -e "Enable ${BOLD}Docker Socket${NC} Access ${BOLD}${YELLOW}${ITALIC}(y/N)${NC}: ")" DOCKER_SOCKET < /dev/tty
+  read -p "$(echo -e "Enable ${BOLD}Docker Socket${NC} Access? ${BOLD}${ITALIC}${YELLOW}[${GREEN}Y${YELLOW} / ${RED}N (default)${YELLOW}]${NC}: ")" DOCKER_SOCKET < /dev/tty
   if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
     read -p "$(echo -e "Provide ${BOLD}Docker Socket Path${NC} (ex. ${ITALIC}/var/run/docker.sock${NC}): ")" DOCKER_SOCKET_PATH < /dev/tty
     # normalize user provided path so it's always unix:// prefixed
     DOCKER_SOCKET_PATH=$(normalize_docker_socket "$DOCKER_SOCKET_PATH")
   fi
-  read -p "$(echo -e "Enable ${BOLD}Pangolin/OLM Clients${NC} Access? ${BOLD}${YELLOW}${ITALIC}(y/N)${NC}: ")" NEWT_CLIENTS < /dev/tty
-  read -p "$(echo -e "Enable ${BOLD}Native${NC} Mode ${BOLD}${YELLOW}${ITALIC}(y/N)${NC}: ")" NEWT_NATIVE < /dev/tty
+  read -p "$(echo -e "Enable ${BOLD}Pangolin/OLM Clients${NC} Access? ${BOLD}${ITALIC}${YELLOW}[${GREEN}Y (default)${YELLOW} / ${RED}N${YELLOW}]${NC}: ")" NEWT_CLIENTS < /dev/tty
+  read -p "$(echo -e "Enable ${BOLD}Native${NC} Mode? ${BOLD}${ITALIC}${YELLOW}[${GREEN}Y${YELLOW} / ${RED}N (default)${YELLOW}]${NC}: ")" NEWT_NATIVE < /dev/tty
   echo ""
 fi
 
@@ -239,31 +292,36 @@ fi
 ExecStartValue="$NEWT_BIN_PATH --id ${SITE_ID} --secret ${SITE_SECRET} --endpoint ${PANGOLIN_ENDPOINT} --health-file /tmp/newt-healthy"
 
 # Conditionally add --disable-clients, --native or --docker-socket flags - ONLY for Upgrade Choice
-if [[ "${NEWT_CLIENTS}" =~ ^[Nn]$ ]]; then
+if [[ "${NEWT_NATIVE,,}" == "y" ]]; then
+    # ExecStartValue+=" --disable-clients true"
+    ExecStartValue+=" --native"
+fi
+if [[ "${NEWT_CLIENTS,,}" == "n" ]]; then
     # ExecStartValue+=" --disable-clients true"
     ExecStartValue+=" --disable-clients"
 fi
-if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]]; then
+if [[ "${DOCKER_SOCKET,,}" == "y" ]]; then
     # Normalize DOCKER_SOCKET_PATH here to ensure 'unix://' prefix and sensible default
     DOCKER_SOCKET_PATH=$(normalize_docker_socket "${DOCKER_SOCKET_PATH}")
     ExecStartValue+=" --docker-socket ${DOCKER_SOCKET_PATH}"
 fi
-if [[ "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
+# if [[ "${NEWT_NATIVE}" =~ ^[Yy]$ ]]; then
+if [[ "${NEWT_NATIVE,,}" == "y" || "${NEWT_CLIENTS,,}" == "y" ]]; then
     read -r -d '' SERVICE_CONTENT << EOF1
 [Unit]
-Description=Newt Site Client Service (Native Mode)
+Description=Newt Site Service
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=${ExecStartValue} --native
+ExecStart=${ExecStartValue}
 Restart=always
-RestartSec=10
-
-# Security hardening options
+RestartSec=2
 User=root
 Group=root
+NoNewPrivileges=true
+PrivateTmp=true
 
 [Install]
 WantedBy=multi-user.target
@@ -271,7 +329,7 @@ EOF1
 else
     read -r -d '' SERVICE_CONTENT << EOF2
 [Unit]
-Description=Newt Site Client Service
+Description=Newt Site Service
 After=network-online.target
 Wants=network-online.target
 
@@ -280,8 +338,7 @@ Type=simple
 ExecStart=${ExecStartValue}
 Restart=always
 RestartSec=10
-
-# Security hardening options
+# Security hardening i.e. without root user
 User=newt
 Group=newt
 NoNewPrivileges=true
@@ -294,38 +351,38 @@ ReadWritePaths=${NEWT_LIB_PATH}
 [Install]
 WantedBy=multi-user.target
 EOF2
-    # Create the directory for the newt Service User and group if they don't exist
-    getent group newt >/dev/null || groupadd newt
-    
-    if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]] && getent group docker >/dev/null; then
-        if ! getent passwd newt >/dev/null; then
-            useradd -r -g newt -G docker -s /usr/sbin/nologin -c "Newt Service User" newt
-            echo -e "🦰 ${GREEN}Newt${NC} Service User has been ${BOLD}created and added${NC} to the standard ${GREEN}docker${NC} group!"
-        else
-            usermod -aG docker newt
-            echo -e "🦰 ${GREEN}Newt${NC} Service User ${BOLD}already exists and has been added${NC} to the standard ${GREEN}docker${NC} group!"
-        fi
-    elif [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]] && ! getent group docker >/dev/null; then
-        if ! getent passwd newt >/dev/null; then
-            useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
-            echo -e "Although standard ${RED}docker${NC} group not found, 🦰 ${GREEN}Newt${NC} Service User is ${BOLD}created${NC}. 💡 ${BOLD}${RED}REMEMBER${NC} to add it to your docker group if you need socket access."
-        else
-            echo -e "Although standard ${RED}docker${NC} group not found, 🦰 ${GREEN}Newt${NC} Service User ${BOLD}already exists${NC}. 💡 ${BOLD}${RED}REMEMBER${NC} to add it to your docker group if you need socket access."
-        fi
-    elif getent passwd newt >/dev/null && id -nG "newt" | grep -qw "docker"; then
-        gpasswd -d newt docker
-        echo -e "🦰 ${YELLOW}${BOLD}Removed${NC} ${YELLOW}existing Newt Service User from standard docker group!${NC}"
-    else
-        # This block handles all other cases, including when the user is created for the first time
-        if ! getent passwd newt >/dev/null; then
-            useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
-            echo -e "🦰 A regular ${GREEN}Newt${NC} Service User has been ${BOLD}created${NC}!"
-        else
-            echo -e "🦰 A regular ${GREEN}Newt${NC} Service User ${BOLD}already exists${NC}!"
-        fi
-    fi
-    mkdir -p "${NEWT_LIB_PATH}"
-    chown newt:newt "${NEWT_LIB_PATH}"
+        setup_newt_user "$DOCKER_SOCKET" "$NEWT_LIB_PATH"
+        # # Create the directory for the newt Service User and group if they don't exist
+        # getent group newt >/dev/null || groupadd newt
+        # if [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]] && getent group docker >/dev/null; then
+        #     if ! getent passwd newt >/dev/null; then
+        #         useradd -r -g newt -G docker -s /usr/sbin/nologin -c "Newt Service User" newt
+        #         echo -e "🦰 ${GREEN}Newt${NC} Service User has been ${BOLD}created and added${NC} to the standard ${GREEN}docker${NC} group!"
+        #     else
+        #         usermod -aG docker newt
+        #         echo -e "🦰 ${GREEN}Newt${NC} Service User ${BOLD}already exists and has been added${NC} to the standard ${GREEN}docker${NC} group!"
+        #     fi
+        # elif [[ "${DOCKER_SOCKET}" =~ ^[Yy]$ ]] && ! getent group docker >/dev/null; then
+        #     if ! getent passwd newt >/dev/null; then
+        #         useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
+        #         echo -e "Although standard ${RED}docker${NC} group not found, 🦰 ${GREEN}Newt${NC} Service User is ${BOLD}created${NC}. 💡 ${BOLD}${RED}REMEMBER${NC} to add it to your docker group if you need socket access."
+        #     else
+        #         echo -e "Although standard ${RED}docker${NC} group not found, 🦰 ${GREEN}Newt${NC} Service User ${BOLD}already exists${NC}. 💡 ${BOLD}${RED}REMEMBER${NC} to add it to your docker group if you need socket access."
+        #     fi
+        # elif getent passwd newt >/dev/null && id -nG "newt" | grep -qw "docker"; then
+        #     gpasswd -d newt docker
+        #     echo -e "🦰 ${YELLOW}${BOLD}Removed${NC} ${YELLOW}existing Newt Service User from standard docker group!${NC}"
+        # else
+        #     # This block handles all other cases, including when the user is created for the first time
+        #     if ! getent passwd newt >/dev/null; then
+        #         useradd -r -g newt -s /usr/sbin/nologin -c "Newt Service User" newt
+        #         echo -e "🦰 A regular ${GREEN}Newt${NC} Service User has been ${BOLD}created${NC}!"
+        #     else
+        #         echo -e "🦰 A regular ${GREEN}Newt${NC} Service User ${BOLD}already exists${NC}!"
+        #     fi
+        # fi
+        # mkdir -p "${NEWT_LIB_PATH}"
+        # chown newt:newt "${NEWT_LIB_PATH}"
 fi
 
 # Stop the Service, if it exists
@@ -334,7 +391,7 @@ if [[ -f "${SERVICE_FILE}" ]]; then
 fi
 # Write the content to the service file
 echo "$SERVICE_CONTENT" | tee "$SERVICE_FILE" > /dev/null
-echo -e "🗒️ ===> Systemd service file (re)created at ${BOLD}${GREEN}$SERVICE_FILE${NC} with provided NEWT Site Client details. <==="
+echo -e "🗒️ ===> Systemd service file (re)created at ${BOLD}${GREEN}$SERVICE_FILE${NC} with provided NEWT Site details. <==="
 echo ""
 echo -e "${BOLD}${YELLOW}⚙️ Enabling/Starting the service after daemon-reload...${NC}"
 echo ""
@@ -346,7 +403,7 @@ systemctl start $SERVICE_NAME
 systemctl status $SERVICE_NAME
 echo ""
 echo -e "${BOLD}===========================================${NC}"
-echo -e "${BOLD}${GREEN}Newt Site Client Service installed. 👋 Goodbye!${NC}"
+echo -e "${BOLD}${GREEN}Newt Site Service installed. 👋 Goodbye!${NC}"
 echo -e "${BOLD}===========================================${NC}"
 echo ""
 exit 0
