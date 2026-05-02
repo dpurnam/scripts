@@ -1,10 +1,10 @@
-Vaultwarden Rsync to Cloudflare R2 (Shell Script) : VWRsync2R2
+Vaultwarden Rsync to Cloudflare R2 : VWRsync2R2
 =================================================================
 
 **VWRsync2R2** is a Linux tool designed to backup your backup your Vaultwarden Docker Container to any S3 compatible object storage. (We're using Cloudflare R2, here)
 
 ## Who Should Use It?
-- Anyone who wants to automatically backup their vaultwarden data to cloud storage.
+- Anyone who wants to automatically backup their vaultwarden data to an S3 compatible cloud storage.
 
 ## Why Use WakeMyPotata?
 
