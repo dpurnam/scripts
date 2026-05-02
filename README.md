@@ -1,4 +1,10 @@
 # Scripts
+- Vaultwarden Rsync to Cloudflare R2 **[VWRsync2R2](https://github.com/dpurnam/scripts/tree/main/Vaultwarden)**
+  - Script for `Vaultwarden Docker Container` backup/restore via Rclone to Cloudflare R2 storage
+  - Customize/rewrite the script as per your requirements
+  - Automate the tasks using custom cron jobs
+
+-----
 - Termux Udocker's **[Vaultwarden](https://github.com/dpurnam/scripts/tree/main/termux-udocker)**
   - Script for `Single Container` docker compose files to be used by [udocker](https://github.com/George-Seven/Termux-Udocker/tree/main)
   - [Sample Script for Vaultwarden](https://github.com/dpurnam/scripts/blob/main/termux-udocker/vaultwarden.sh) along with its [docker compose file](https://github.com/dpurnam/scripts/blob/main/termux-udocker/vaultwarden-docker-compose.yml) available
