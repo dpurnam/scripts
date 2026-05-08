@@ -337,6 +337,7 @@ Type=simple
 ExecStart=${ExecStartValue}
 Restart=always
 RestartSec=2
+UMask=0077
 User=root
 Group=root
 NoNewPrivileges=true
@@ -360,6 +361,7 @@ RestartSec=10
 # Security hardening i.e. without root user
 User=newt
 Group=newt
+UMask=0077
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
