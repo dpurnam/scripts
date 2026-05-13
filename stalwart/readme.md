@@ -39,8 +39,9 @@ To check all available commands, use `./swmanage.sh ?`.
 
 Example:
 ```
-./swmanage-v0.16.sh -p my_passphrase -m restore
-./swmanage.sh -c stalwart_admin_password -p my_passphrase -m backup
+./swmanage-v0.16.sh -p my_passphrase -m restore -> restore mode using inline passphrase
+./swmanage-v0.16.sh -f path/to/passphrase/file -> (defaults to) backup mode using passphrase file
+./swmanage.sh -p my_passphrase -m backup -c stalwart_admin_password  -> backup mode using inline passphrase with superadmin credentials
 ```
 ## Components
 
