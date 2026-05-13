@@ -25,15 +25,16 @@ Stalwart Backup/Restore Manager (swmanage)
 
 To check all available commands, use `./swmanage.sh ?`.
 
-| Arguments | Description |
-| --------- | ----------- |
-| `-p`*     | Your Encryption/Decryption Passphrase |
-| `-m`      | Define script mode viz. `backup` or `restore`.<br>If unused, defaults to `backup` mode |
-| `-c`*1    | Stalwart Admin user password |
-| `-k`      | If used, keeps the temporary .gzip files for quick local access.<br>If unused, defaults to deleting the temporary .gzip files after the script completes |
-| `-z`1     | If used, allows to work on custom list of DOMAINS/ACCOUNTS (info must be provied in the Main config file!)<br>If unused, defaults to working on ALL Individual ACCOUNTS from the server. |
+|  Arguments | Description |
+| ---------- | ----------- |
+| `-p`*      | Your Encryption/Decryption Passphrase |
+| `-f`*2     | Path to a file containing your Encryption/Decryption Passphrase |
+| `-m`       | Define script mode viz. `backup` or `restore`.<br>If unused, defaults to `backup` mode |
+| `-c`*1     | Stalwart Admin user password |
+| `-k`       | If used, keeps the temporary .gzip files for quick local access.<br>If unused, defaults to deleting the temporary .gzip files after the script completes |
+| `-z`1      | If used, allows to work on custom list of DOMAINS/ACCOUNTS (info must be provied in the Main config file!)<br>If unused, defaults to working on ALL Individual ACCOUNTS from the server. |
 
-( * - Mandatory; 1 - Applicable only for Stalwart Version =< v0.15.x)
+( * - Mandatory; 1 - Applicable only for `swmanage.sh`; 2 - Applicable only for `swmanage-v0.16.sh`)
 
 Example:
 ```
