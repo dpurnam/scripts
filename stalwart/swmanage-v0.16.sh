@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # ==========================================================
-# Stalwart Full Backup Script (PGDB + Files) v0.16.0
+# Stalwart Full Backup Script (PGDB + Files) - compatible with Stalwart Server >= v0.16.x
 # ==========================================================
 # This script performs a full backup/restore of Stalwart
 # mail server by backing up the PostgreSQL database and
-# all files/directories in the Stalwart installation root.
+# all files/directories in the Stalwart installation directory.
 #
 # Backup flow:
 #   1. Stop Stalwart container
 #   2. Dump, compress & encrypt PostgreSQL database
 #   3. Compress & encrypt all other files/directories
-#   4. Start rclone container to sync encrypted files to R2
+#   4. Start rclone container to sync encrypted files to Cloudflare R2
 #   5. Start Stalwart container
 #   6. Clean up temporary files
 #
