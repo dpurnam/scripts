@@ -24,11 +24,11 @@
 - Stalwart Mailserver [Scripts](https://github.com/dpurnam/scripts/tree/main/stalwart)
   - **[Cloudflare TLSA Record Updater](https://github.com/dpurnam/scripts/blob/main/stalwart/cloudflare-tlsa-record-updater.sh)**
     -  Set up or Update a TLSA record (used for `DANE` feature of Stalwart) on an associated Cloudflare Account
-    -  Now with compatible with Stalwart Server > v0.15.5, by using `openssl` instead of deprecated `Stalwart REST API's`
+    -  Now compatible with latest Stalwart Server Version, by using `openssl` instead of deprecated `Stalwart REST API's`
   - **[Full Backup/Restore Manager](https://github.com/dpurnam/scripts/tree/main/stalwart)**
     -  Complete backup or restore of PostgresSQL DB and all (or pre-defined list of) Accounts - `Individual type Principals`
     -  Compression and Encryption before/after syncing with desired Storage Provider via `rclone`
-    -  Compatibility: Tested upto v0.15.x
+    -  Compatibility: `swmanage.sh` - tested upto v0.15.x; `swmanage-v0.16.sh` - tested on v0.16.3
 
 -----
 - Device Availability Manager - **[WakeMyPotata](https://github.com/dpurnam/scripts/tree/main/WakeMyPotata)**
