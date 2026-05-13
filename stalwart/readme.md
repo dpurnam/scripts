@@ -38,11 +38,13 @@ To check all available commands, use `./swmanage.sh ?`.
 ( * - Mandatory; 1 - Applicable only for `swmanage.sh`; 2 - Applicable only for `swmanage-v0.16.sh`)
 
 Example:
-```
-./swmanage-v0.16.sh -p my_passphrase -m restore -> restore mode using inline passphrase
-./swmanage-v0.16.sh -f path/to/passphrase/file -> (defaults to) backup mode using passphrase file
-./swmanage.sh -p my_passphrase -m backup -c stalwart_admin_password  -> backup mode using inline passphrase with superadmin credentials
-```
+1. Restore mode using inline passphrase
+`./swmanage-v0.16.sh -p my_passphrase -m restore`
+2. (Defaults to) backup mode using passphrase file
+`./swmanage-v0.16.sh -f path/to/passphrase/file`
+3. Backup mode using inline passphrase with superadmin credentials
+`./swmanage.sh -p my_passphrase -m backup -c stalwart_admin_password`
+
 ## Components
 
 - [swmanage.sh](https://github.com/dpurnam/scripts/blob/main/stalwart/swmanage.sh) : The Core Intelligence (For Stalwart Version =< v0.15.x).
