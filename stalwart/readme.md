@@ -22,6 +22,7 @@ Stalwart Backup/Restore Manager (swmanage)
 2. Download all three files to the Stalwart Top Level Directory on the host.
 3. This should be the same directory that you've mapped to `/opt/stalwart` or `/var/lib/stalwart` in its docker container.
 4. Populate both the config files with valid information, appropriately
+5. Create/Populate a the file `swmanage-passphrase.conf` with appropriate passphrase, in the same directory - ONLY if using `-f` flag, instead of `-p`
 
 To check all available commands, use `./swmanage.sh ?`.
 
