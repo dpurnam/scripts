@@ -26,7 +26,7 @@
     -  Set up or Update a TLSA record (used for `DANE` feature of Stalwart) on an associated Cloudflare Account
     -  Now compatible with latest Stalwart Server Version, by using `openssl` instead of `deprecated` Stalwart REST API's
   - **[Full Backup/Restore Manager](https://github.com/dpurnam/scripts/tree/main/stalwart)**
-    -  Complete backup or restore of PostgresSQL DB and all (or pre-defined list of) Accounts - `Individual type Principals`
+    -  Complete backup or restore of PostgresSQL DB and any files/folders in Stalwart Directory; In case of Stalwart Server v =< v0.15.x, also includes - all (or pre-defined list of) Accounts - `Individual type Principals`
     -  Compression and Encryption before/after syncing with desired Storage Provider via `rclone`
     -  Compatibility: `swmanage.sh` - tested upto v0.15.x; `swmanage-v0.16.sh` - tested on v0.16.3
 
