@@ -18,7 +18,7 @@ Stalwart Backup/Restore Manager (swmanage)
 - A functional/healthy **PostgresSQL DB** running on the host and configured as backed store in Stalwart
 
 ## Usage
-1. Ensure to use appropriate main script based on your current version of Stalwart Server Instance (swmanage.sh - v0.15.x; swmanage-v0.16.sh - v0.16.x)
+1. Ensure to use appropriate main script based on your current version of Stalwart Server Instance (`swmanage.sh` - v0.15.x; `swmanage-v0.16.sh` - v0.16.x)
 2. Download all three files to the Stalwart Top Level Directory on the host.
 3. This should be the same directory that you've mapped to `/opt/stalwart` or `/var/lib/stalwart` in its docker container.
 4. Populate both the config files with valid information, appropriately
