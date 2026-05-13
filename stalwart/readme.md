@@ -14,33 +14,37 @@ Stalwart Backup/Restore Manager (swmanage)
 - Local Compression/Decompression before/after upload/download
 
 ## Pre-requisites
-- A functional/healthy **Stalwart Mail Server** docker container (and its JMAP/WebAdmin access URL) only upto v0.14.x
+- A functional/healthy **Stalwart Mail Server** docker container (and its JMAP/WebAdmin access URL, only if Stalwart version =< 0.15.x)
 - A functional/healthy **PostgresSQL DB** running on the host and configured as backed store in Stalwart
 
 ## Usage
-1. Download all three files to the Stalwart Top Level Directory on the host.
-2. This should be the same directory that you've mapped to `/opt/stalwart` in its docker container.
-3. Populate both the config files with valid information
+1. Ensure to use appropriate main script based on your current version of Stalwart Server Instance (swmanage.sh - v0.15.x; swmanage-v0.16.sh - v0.16.x)
+2. Download all three files to the Stalwart Top Level Directory on the host.
+3. This should be the same directory that you've mapped to `/opt/stalwart` or `/var/lib/stalwart` in its docker container.
+4. Populate both the config files with valid information, appropriately
 
 To check all available commands, use `./swmanage.sh ?`.
 
 | Arguments | Description |
-| ------- | ----------- |
-| `-c`*   | Stalwart Admin user password |
-| `-p`*   | Your Encryption/Decryption Passphrase |
-| `-m`    | Define script mode viz. `backup` or `restore`.<br>If unused, defaults to `backup` mode |
-| `-k`    | If used, keeps the temporary .gzip files for quick local access.<br>If unused, defaults to deleting the temporary .gzip files after the script completes |
-| `-z`    | If used, allows to work on custom list of DOMAINS/ACCOUNTS (info must be provied in the Main config file!)<br>If unused, defaults to working on ALL Individual ACCOUNTS from the server. |
+| --------- | ----------- |
+| `-p`*     | Your Encryption/Decryption Passphrase |
+| `-m`      | Define script mode viz. `backup` or `restore`.<br>If unused, defaults to `backup` mode |
+| `-c`*1    | Stalwart Admin user password |
+| `-k`      | If used, keeps the temporary .gzip files for quick local access.<br>If unused, defaults to deleting the temporary .gzip files after the script completes |
+| `-z`1     | If used, allows to work on custom list of DOMAINS/ACCOUNTS (info must be provied in the Main config file!)<br>If unused, defaults to working on ALL Individual ACCOUNTS from the server. |
 
-( * - Mandatory)
+( * - Mandatory; 1 - Applicable only for Stalwart Version =< v0.15.x)
 
 Example:
 ```
+./swmanage-v0.16.sh -p my_passphrase -m restore
 ./swmanage.sh -c stalwart_admin_password -p my_passphrase -m backup
 ```
 ## Components
 
-- [swmanage.sh](https://github.com/dpurnam/scripts/blob/main/stalwart/swmanage.sh) : The Core Intelligence.
+- [swmanage.sh](https://github.com/dpurnam/scripts/blob/main/stalwart/swmanage.sh) : The Core Intelligence (For Stalwart Version =< v0.15.x).
+
+- [swmanage-v0.16.sh](https://github.com/dpurnam/scripts/blob/main/stalwart/swmanage-v0.16.sh) : The Core Intelligence (For Stalwart Version >= v0.16.x).
 
 - [swmanage-rclone.conf](https://github.com/dpurnam/scripts/blob/main/stalwart/swmanage-rclone.conf) : The Rclone Config File (Must be populated with Valid Info)
 
@@ -104,6 +108,8 @@ Example:
 ├── **swmanage-rclone.conf** `(Rclone Config File)`
 <br>│<br>
 └── **_swmanage.sh_** `(Main Script File)`
+<br>│<br>
+└── **_swmanage-v0.16.sh_** `(Main Script File)`
 
 
 ## Other packages/components used/installed/launched automatically
