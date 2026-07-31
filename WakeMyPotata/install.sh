@@ -37,7 +37,7 @@ echo ""
 read -p "$(echo -e "Is this device powered by a ${BOLD}bulit-in battery${NC}? ${YELLOW}${BOLD}(y/N)${NC}: ")" confirm_battery_powered_device < /dev/tty
 echo ""
 if [[ "${confirm_battery_powered_device}" =~ ^[Yy]$ ]]; then
-    read -p "$(echo -e "Enter battery level threshold (${BOLD}between 10-50%${NC}) to wake up the device ${BOLD}after a blackout${NC}.\n${YELLOW}or leave empty to use the default value of 10%!${NC} : ")" threshold < /dev/tty
+    read -p "$(echo -e "Enter battery level threshold (${BOLD}between 10-50%${NC}) to safely suspends the battery-powered device to RAM ${BOLD}after a blackout${NC}.\n${YELLOW}or leave empty to use the default value of 10%!${NC} : ")" threshold < /dev/tty
     echo -e "${YELLOW}${BOLD}Please Note:${NC} This setting will be ignored if upower tool ${BOLD}does not${NC} detect a built-in battery!"
     echo ""
     # Set/Verify Threshold Value
