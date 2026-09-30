@@ -122,10 +122,10 @@ else
             echo "WakeMyPotata: Shutting down NOW! Scheduling automatic pwoer up in $TIMEOUT seconds!!" & sleep 10
             # Shut down the system completely (ACPI state S5) and then set an RTC alarm.
             # When the timer expires, the RTC will power the machine back on from its fully powered-off state
-            #rtcwake -m off -s "$TIMEOUT"
+            #rtcwake -m off -s "$TIMEOUT" && /sbin/poweroff
             # Shut down the system while storing the system state in RAM and then set an RTC alarm.
             # When the timer expires, the RTC will power the machine back on from its fully powered-off state
-            rtcwake -m mem -s "$TIMEOUT"
+            rtcwake -m mem -s "$TIMEOUT" && /sbin/poweroff
         else
             log "AC power lost, but current battery level > $THRESHOLD% ($battery_percentage%). No emergency shutdown."
         fi
