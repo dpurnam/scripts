@@ -99,7 +99,8 @@ elif [[ "$1" == "battery" && $threshold_feature -eq 1 ]]; then
     fi
     BAT_PATH=$(upower -e 2>/dev/null | grep -m1 BAT || true)
     if [ -n "$BAT_PATH" ]; then
-        upower -i "$BAT_PATH" | grep -E 'state|percentage|time to empty|time to full'
+        #upower -i "$BAT_PATH" | grep -E 'state|percentage|time to empty|time to full'
+        upower -i "$BAT_PATH"
     fi
 
 elif [[ "$1" == "threshold" && "$2" == "set" && -n "$3" && $threshold_feature -eq 1 ]]; then
